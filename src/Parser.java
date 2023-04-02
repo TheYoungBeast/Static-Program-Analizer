@@ -20,6 +20,7 @@ public class Parser {
   public ASTNode parse() {
     ASTNode procedureNode = parseProcedure();
     pkb.computeTransitiveClosures();
+    pkb.addAST(procedureNode);
     return procedureNode;
   }
 
@@ -42,6 +43,7 @@ public class Parser {
       // Add the Follows relation
       if (prevStatement != null) {
         pkb.addFollows(prevStatement.statementId, statement.statementId);
+        pkb.addCFGEdge(prevStatement.statementId, statement.statementId);
       }
       prevStatement = statement;
     }
@@ -50,11 +52,14 @@ public class Parser {
 
   private StatementNode parseStatement() {
     int id = statementIdGenerator.incrementAndGet();
+    StatementNode statement;
     if (check(TokenType.WHILE)) {
-      return parseWhile(id);
+      statement = parseWhile(id);
     } else {
-      return parseAssignment(id);
+      statement = parseAssignment(id);
     }
+    pkb.addCFGNode(statement.statementId);
+    return statement;
   }
 
   private WhileNode parseWhile(int id) {
@@ -70,6 +75,13 @@ public class Parser {
       updateRelations(statement, id);
     }
     match(TokenType.RBRACE);
+    // Add CFG edge from the while statement to the first statement in its body
+    // Add CFG edge from the last statement in the while body to the while statement
+    if (!statements.isEmpty()) {
+      pkb.addCFGEdge(id, statements.get(0).statementId);
+      pkb.addCFGEdge(statements.get(statements.size() - 1).statementId, id);
+
+    }
     return new WhileNode(id, condition, statements);
   }
 
@@ -99,7 +111,6 @@ public class Parser {
     match(TokenType.EQUALS);
     ExpressionNode expression = parseExpression();
     match(TokenType.SEMICOLON);
-    pkb.addAST(id, new AssignmentNode(id, name, expression));
     pkb.addModifies(id, name);
     extractUses(expression, id);
     return new AssignmentNode(id, name, expression);
