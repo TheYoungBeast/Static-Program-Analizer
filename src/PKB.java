@@ -1,3 +1,4 @@
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -5,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 // Program Knowledge Base
 public class PKB {
@@ -21,7 +23,9 @@ public class PKB {
 
   private final Map<Integer, Set<String>> uses;
 
-  private final Map<Integer, ASTNode> ast;
+  private ASTNode ast;
+
+  private final CFG cfg;
 
   public PKB() {
     follows = new HashMap<>();
@@ -30,7 +34,15 @@ public class PKB {
     parentStar = new LinkedHashMap<>();
     modifies = new HashMap<>();
     uses = new HashMap<>();
-    ast = new HashMap<>();
+    cfg = new CFG();
+  }
+
+  public void addCFGNode(int statementId) {
+    cfg.addNode(statementId);
+  }
+
+  public void addCFGEdge(int fromStatementId, int toStatementId) {
+    cfg.addEdge(fromStatementId, toStatementId);
   }
 
   public void addFollows(int s1, int s2) {
@@ -57,8 +69,8 @@ public class PKB {
     uses.computeIfAbsent(s, k -> new LinkedHashSet<>()).add(v);
   }
 
-  public void addAST(int id, ASTNode node) {
-    ast.put(id, node);
+  public void addAST(ASTNode node) {
+    ast = node;
   }
 
   public void computeTransitiveClosures() {
