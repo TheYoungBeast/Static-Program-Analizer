@@ -1,11 +1,11 @@
 package QueryProcessor.QueryTree;
 
 
-public class QueryTreeImpl implements QueryTree
+public class QTree implements QueryTree
 {
     private final QTNode resultNode;
 
-    public QueryTreeImpl(QTNode resultNode) {
+    public QTree(QTNode resultNode) {
         this.resultNode = resultNode;
     }
 

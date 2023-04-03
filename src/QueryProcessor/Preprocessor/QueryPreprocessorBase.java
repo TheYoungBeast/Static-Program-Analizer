@@ -4,7 +4,7 @@ import QueryProcessor.Preprocessor.Exceptions.*;
 import QueryProcessor.QueryTree.QueryTree;
 import QueryProcessor.QueryTree.ResNode;
 import QueryProcessor.QueryTree.ResultNode;
-import QueryProcessor.QueryTree.QueryTreeImpl;
+import QueryProcessor.QueryTree.QTree;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -160,7 +160,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                         last = resNode;
                     }
 
-                    return new QueryTreeImpl(rNode);
+                    return new QTree(rNode);
                 }
             }
         }
@@ -168,6 +168,6 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         if(!selectClause)
             throw new InvalidQueryException("No select clause was found");
 
-        return new QueryTreeImpl(null) {};
+        return new QTree(null) {};
     }
 }
