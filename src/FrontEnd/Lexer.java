@@ -1,3 +1,8 @@
+package FrontEnd;
+
+import FrontEnd.Token;
+import FrontEnd.TokenType;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

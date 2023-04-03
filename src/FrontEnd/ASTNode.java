@@ -1,6 +1,8 @@
+package FrontEnd;
+
 import java.util.List;
 
-abstract class ASTNode {
+public abstract class ASTNode {
 
 }
 

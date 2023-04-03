@@ -1,4 +1,8 @@
-import java.util.Collections;
+package PKB;
+
+import FrontEnd.ASTNode;
+import FrontEnd.CFG;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -6,10 +10,9 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 // Program Knowledge Base
-public class PKB {
+public class PKB implements PKBAPI {
 
   private final Map<Integer, Set<Integer>> follows;
 

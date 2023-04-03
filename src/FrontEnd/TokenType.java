@@ -1,3 +1,5 @@
+package FrontEnd;
+
 public enum TokenType {
   PROCEDURE("procedure"),
   WHILE("while"),

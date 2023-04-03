@@ -1,3 +1,7 @@
+package FrontEnd;
+
+import FrontEnd.TokenType;
+
 public class Token {
 
   private TokenType type;
@@ -19,6 +23,6 @@ public class Token {
 
   @Override
   public String toString() {
-    return String.format("Token{type=%s, value='%s'}", type, value);
+    return String.format("FrontEnd.Token{type=%s, value='%s'}", type, value);
   }
 }

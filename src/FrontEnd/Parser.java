@@ -1,3 +1,9 @@
+package FrontEnd;
+
+import FrontEnd.Token;
+import FrontEnd.TokenType;
+import PKB.PKB;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -75,8 +81,8 @@ public class Parser {
       updateRelations(statement, id);
     }
     match(TokenType.RBRACE);
-    // Add CFG edge from the while statement to the first statement in its body
-    // Add CFG edge from the last statement in the while body to the while statement
+    // Add FrontEnd.CFG edge from the while statement to the first statement in its body
+    // Add FrontEnd.CFG edge from the last statement in the while body to the while statement
     if (!statements.isEmpty()) {
       pkb.addCFGEdge(id, statements.get(0).statementId);
       pkb.addCFGEdge(statements.get(statements.size() - 1).statementId, id);
