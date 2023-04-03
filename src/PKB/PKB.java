@@ -1,6 +1,6 @@
 package PKB;
 
-import FrontEnd.ASTNode;
+import FrontEnd.AST.ASTNode;
 import FrontEnd.CFG;
 
 import java.util.HashMap;

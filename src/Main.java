@@ -1,4 +1,4 @@
-import FrontEnd.ASTNode;
+import FrontEnd.AST.ASTNode;
 import FrontEnd.Lexer;
 import FrontEnd.Parser;
 import FrontEnd.Token;

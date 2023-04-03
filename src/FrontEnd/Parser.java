@@ -1,7 +1,6 @@
 package FrontEnd;
 
-import FrontEnd.Token;
-import FrontEnd.TokenType;
+import FrontEnd.AST.*;
 import PKB.PKB;
 
 import java.util.ArrayList;
@@ -48,8 +47,8 @@ public class Parser {
 
       // Add the Follows relation
       if (prevStatement != null) {
-        pkb.addFollows(prevStatement.statementId, statement.statementId);
-        pkb.addCFGEdge(prevStatement.statementId, statement.statementId);
+        pkb.addFollows(prevStatement.getStatementId(), statement.getStatementId());
+        pkb.addCFGEdge(prevStatement.getStatementId(), statement.getStatementId());
       }
       prevStatement = statement;
     }
@@ -64,7 +63,7 @@ public class Parser {
     } else {
       statement = parseAssignment(id);
     }
-    pkb.addCFGNode(statement.statementId);
+    pkb.addCFGNode(statement.getStatementId());
     return statement;
   }
 
@@ -73,10 +72,10 @@ public class Parser {
     VariableNode condition = (VariableNode) parseExpression();
     match(TokenType.LBRACE);
     // Add the control variable to the Uses relation
-    pkb.addUses(id, condition.name);
+    pkb.addUses(id, condition.getName());
     List<StatementNode> statements = parseStatements();
     for (StatementNode statement : statements) {
-      pkb.addParent(id, statement.statementId);
+      pkb.addParent(id, statement.getStatementId());
       // Update Modifies and Uses relations for parent while statement
       updateRelations(statement, id);
     }
@@ -84,8 +83,8 @@ public class Parser {
     // Add FrontEnd.CFG edge from the while statement to the first statement in its body
     // Add FrontEnd.CFG edge from the last statement in the while body to the while statement
     if (!statements.isEmpty()) {
-      pkb.addCFGEdge(id, statements.get(0).statementId);
-      pkb.addCFGEdge(statements.get(statements.size() - 1).statementId, id);
+      pkb.addCFGEdge(id, statements.get(0).getStatementId());
+      pkb.addCFGEdge(statements.get(statements.size() - 1).getStatementId(), id);
 
     }
     return new WhileNode(id, condition, statements);
@@ -100,14 +99,14 @@ public class Parser {
   }
 
   private void updateRelationsForAssignment(AssignmentNode assignmentNode, int parentId) {
-    String varName = assignmentNode.name;
+    String varName = assignmentNode.getName();
     pkb.addModifies(parentId, varName);
-    extractUses(assignmentNode.expression, parentId);
+    extractUses(assignmentNode.getExpression(), parentId);
   }
 
   private void updateRelationsForWhile(WhileNode whileNode, int parentId) {
-    pkb.addUses(parentId, whileNode.condition.name);
-    for (StatementNode statement : whileNode.statements) {
+    pkb.addUses(parentId, whileNode.getCondition().getName());
+    for (StatementNode statement : whileNode.getStatements()) {
       updateRelations(statement, parentId);
     }
   }
@@ -124,10 +123,10 @@ public class Parser {
 
   private void extractUses(ASTNode node, int id) {
     if (node instanceof VariableNode) {
-      pkb.addUses(id, ((VariableNode) node).name);
+      pkb.addUses(id, ((VariableNode) node).getName());
     } else if (node instanceof PlusNode) {
-      extractUses(((PlusNode) node).left, id);
-      extractUses(((PlusNode) node).right, id);
+      extractUses(((PlusNode) node).getLeft(), id);
+      extractUses(((PlusNode) node).getRight(), id);
     }
   }
 
