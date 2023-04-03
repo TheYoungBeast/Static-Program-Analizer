@@ -1,15 +1,12 @@
 import FrontEnd.AST.ASTNode;
-import FrontEnd.AST.TNode;
 import FrontEnd.Lexer;
 import FrontEnd.Parser;
 import FrontEnd.Token;
 import PKB.PKB;
-import QueryProcessor.Preprocessor.QTNode;
 import QueryProcessor.Preprocessor.QueryPreprocessorBase;
-import QueryProcessor.QueryTree;
+import QueryProcessor.QueryTree.QueryTree;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class Main {
 

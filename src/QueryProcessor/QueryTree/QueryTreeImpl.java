@@ -1,6 +1,5 @@
-package QueryProcessor;
+package QueryProcessor.QueryTree;
 
-import QueryProcessor.Preprocessor.QTNode;
 
 public class QueryTreeImpl implements QueryTree
 {

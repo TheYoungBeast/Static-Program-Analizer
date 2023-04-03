@@ -1,6 +1,5 @@
-package QueryProcessor.Preprocessor;
+package QueryProcessor.QueryTree;
 
-import FrontEnd.AST.ASTNode;
 import FrontEnd.AST.TNode;
 
 public class QTNode implements TNode
@@ -50,23 +49,3 @@ public class QTNode implements TNode
     }
 }
 
-class ResultNode extends QTNode
-{
-    public ResultNode() {
-        super("Result");
-    }
-}
-
-class SuchThatNode extends QTNode
-{
-    public SuchThatNode(String label) {
-        super(label);
-    }
-}
-
-class ResNode extends QTNode
-{
-    public ResNode(String label) {
-        super(label);
-    }
-}

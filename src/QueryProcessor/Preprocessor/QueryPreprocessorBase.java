@@ -1,8 +1,10 @@
 package QueryProcessor.Preprocessor;
 
 import QueryProcessor.Preprocessor.Exceptions.*;
-import QueryProcessor.QueryTree;
-import QueryProcessor.QueryTreeImpl;
+import QueryProcessor.QueryTree.QueryTree;
+import QueryProcessor.QueryTree.ResNode;
+import QueryProcessor.QueryTree.ResultNode;
+import QueryProcessor.QueryTree.QueryTreeImpl;
 
 import java.util.*;
 import java.util.regex.Pattern;
