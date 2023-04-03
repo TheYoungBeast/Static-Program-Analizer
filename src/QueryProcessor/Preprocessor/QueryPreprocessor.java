@@ -1,4 +1,4 @@
-package QueryProcessor;
+package QueryProcessor.Preprocessor;
 
 public interface QueryPreprocessor {
 }

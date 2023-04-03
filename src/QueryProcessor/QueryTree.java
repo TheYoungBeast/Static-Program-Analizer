@@ -6,5 +6,9 @@ package QueryProcessor;
 // Strona 62 [62/69]
 // https://cez2.wi.pb.edu.pl/moodle/pluginfile.php/103022/mod_resource/content/4/INF2ATS%20Handbook.pdf
 
-public interface QueryTree {
+import QueryProcessor.Preprocessor.QTNode;
+
+public interface QueryTree
+{
+    QTNode getResultNode();
 }
