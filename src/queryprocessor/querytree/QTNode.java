@@ -37,12 +37,12 @@ public class QTNode implements TNode {
   }
 
   @Override
-  public void SetFirstChild(TNode node) {
+  public void setFirstChild(TNode node) {
     firstChild = (QTNode) node;
   }
 
   @Override
-  public void SetRightSibling(TNode node) {
+  public void setRightSibling(TNode node) {
     rightSibling = (QTNode) node;
   }
 

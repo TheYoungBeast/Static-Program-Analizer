@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Stack;
 import pkb.ProgramKnowledgeBase;
 import queryprocessor.preprocessor.QueryPreprocessorBase;
+import queryprocessor.preprocessor.exceptions.InvalidQueryException;
+import queryprocessor.preprocessor.exceptions.MissingArgumentException;
 import queryprocessor.querytree.QTNode;
 import queryprocessor.querytree.QueryTree;
 
 public class Main {
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     Lexer lexer = new Lexer();
     List<Token> tokens = lexer.tokenize("example_source_code.txt");
     ProgramKnowledgeBase pkb = new ProgramKnowledgeBase();
@@ -19,7 +21,17 @@ public class Main {
 
     var qp = new QueryPreprocessorBase();
 
-    QueryTree qt = qp.parseQuery("assign a1, a2; while w; select a1, a2 such that Parent");
+    QueryTree qt = null;
+    try {
+      qt = qp.parseQuery("assign a1, a2; while w; select a1, a2 such that Parent(a1, w) with a2.varName = \"x\";");
+    } catch (InvalidQueryException e) {
+      System.err.println(e.explain());
+    } catch (MissingArgumentException e) {
+      System.err.println(e.explain());
+    }
+
+    if(qt == null)
+      return;
 
     var node = qt.getResultNode();
 
@@ -34,6 +46,6 @@ public class Main {
       nodeStack.add(node.getRightSibling());
       System.out.println(node.getLabel());
       node = node.getFirstChild();
-    } while(!nodeStack.empty());
+    } while(!nodeStack.empty() || node != null);
   }
 }

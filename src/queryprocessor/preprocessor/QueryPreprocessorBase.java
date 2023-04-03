@@ -7,12 +7,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import queryprocessor.preprocessor.exceptions.InvalidQueryException;
 import queryprocessor.preprocessor.exceptions.MissingArgumentException;
-import queryprocessor.querytree.QTree;
-import queryprocessor.querytree.QueryTree;
-import queryprocessor.querytree.RelationshipNode;
-import queryprocessor.querytree.ResNode;
-import queryprocessor.querytree.ResultNode;
-import queryprocessor.querytree.SuchThatNode;
+import queryprocessor.querytree.*;
 
 public class QueryPreprocessorBase implements QueryPreprocessor {
 
@@ -34,7 +29,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
           throw new InvalidQueryException("Empty query");
       }
 
-    var array = query.split(";");
+    var array = query.split(";"); // positive look behind - query.split("((?<=;))");
 
     return parseQuery(array);
   }
@@ -99,7 +94,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
           }
 
         var synonyms = Pattern.compile(Keyword.SYNONYM.getPattern())
-            .matcher(line.substring(start))
+            .matcher(line.substring(start+1))
             .results()
             .map(mr -> mr.group())
             .collect(Collectors.toList());
@@ -117,8 +112,8 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
             }
         }
       }
-      // Select clause
       else {
+        //region SELECT CLAUSE
         var matcher = Pattern.compile(Keyword.SELECT.getPattern(), Pattern.CASE_INSENSITIVE)
             .matcher(line);
 
@@ -134,7 +129,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
           var selectVars = Pattern.compile(Keyword.SYNONYM.getPattern())
               .matcher(line.substring(start))
               .results()
-              .map(mr -> mr.group())
+              .map(mr -> mr.group().trim())
               .collect(Collectors.toList());
 
           boolean found = false;
@@ -164,11 +159,11 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
             var resNode = new ResNode(v);
             if (first) {
               resNode.setParent(rNode);
-              rNode.SetFirstChild(resNode);
+              rNode.setFirstChild(resNode);
               first = false;
             } else {
               resNode.setParent(last);
-              last.SetRightSibling(resNode);
+              last.setRightSibling(resNode);
             }
 
             last = resNode;
@@ -176,7 +171,9 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
 
           tree.setResultNode(rNode);
         }
+        //endregion
 
+        // region SUCH THAT
         matcher = Pattern.compile(Pattern.quote(Keyword.SUCH_THAT.getPattern()), Pattern.CASE_INSENSITIVE).matcher(line);
 
         // such that clause
@@ -193,7 +190,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
           for (Keyword rel: relationships) {
             var relMatcher = Pattern.compile(Pattern.quote(rel.getPattern()), Pattern.CASE_INSENSITIVE).matcher(line);
 
-            if(relMatcher.find()) {
+            if(relMatcher.find(ststart)) {
               relType = rel;
               start = matcher.end();
               break;
@@ -203,12 +200,50 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
           var r = new RelationshipNode(relType.getPattern(), "x", "1");
 
           var STNode = new SuchThatNode();
-          tree.getResultNode().SetRightSibling(STNode);
+          tree.getResultNode().setRightSibling(STNode);
 
           tree.setSuchThatNode(STNode);
-          STNode.SetFirstChild(r);
+          STNode.setFirstChild(r);
           r.setParent(STNode);
         }
+
+        //endregion
+
+        //region WITH
+        matcher = Pattern.compile(Pattern.quote(Keyword.WITH.getPattern()), Pattern.CASE_INSENSITIVE).matcher(line);
+
+        // with clause
+        if(matcher.find()) {
+          var wStart = matcher.end();
+
+          var attrs = Pattern.compile(Keyword.ATTR_COND.getPattern(), Pattern.CASE_INSENSITIVE)
+                  .matcher(line.substring((wStart)))
+                  .results()
+                  .map(mr -> mr.group().trim())
+                  .collect(Collectors.toList());
+
+          if(attrs.isEmpty())
+            throw new InvalidQueryException("Invalid 'with clause'", i, line);
+
+          QTNode cond = null;
+          for (String attr: attrs) {
+            var res = attr.split("\\.");
+
+            if(res.length != 2)
+              throw new InvalidQueryException("Invalid attributeRef", i, attr);
+
+            cond = new ConditionNode(res[0].trim(), res[1].trim());
+          }
+
+          var wthNode = new WithNode();
+          tree.setWithNode(wthNode);
+          cond.setParent(cond);
+          wthNode.setFirstChild(cond);
+
+          if(tree.getSuchThatNode() != null)
+            tree.getSuchThatNode().setRightSibling(wthNode);
+        }
+        //endregion
       }
     }
 

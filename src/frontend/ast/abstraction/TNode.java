@@ -13,9 +13,9 @@ public interface TNode {
 
   TNode getParent();
 
-  void SetFirstChild(TNode node);
+  void setFirstChild(TNode node);
 
-  void SetRightSibling(TNode node);
+  void setRightSibling(TNode node);
 
   void setParent(TNode node);
 }

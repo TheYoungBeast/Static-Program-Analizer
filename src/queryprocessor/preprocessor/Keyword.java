@@ -15,7 +15,11 @@ public enum Keyword {
   T_FOLLOWS("Follows*"),
   PARENT("Parent"),
   T_PARENT("Parent*"),
-  SYNONYM("([a-zA-Z]+[0-9]*).+?((?=such)|(?=with)|(?=pattern))"); // ([a-zA-Z]+[0-9])*.?((?=such)|(?=with)|(?=pattern)|(?=,))
+  SYNONYM("(?<!(\\(\\s*))(([a-zA-Z]+[0-9]*)\\s?((?=such)|(?=with)|(?=pattern)|(?=,)|(?=$)))(?!\\))"), // match synonyms between select ... such/with/pattern
+  ATTR_COND("([a-zA-Z]+[0-9]*\\.(procName|varName|stmt#)).*?(?=\\=)"), // match synonyms with attributes
+  PROCNAME("procName"),
+  VARNAME("varName"),
+  STMTNUMBER("stmt#");
 
   private final String pattern;
 

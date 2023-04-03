@@ -5,7 +5,7 @@ public class QTree implements QueryTree {
 
   private QTNode resultNode = null;
   private QTNode suchThatNode = null;
-  private final QTNode withNode = null;
+  private QTNode withNode = null;
 
   public QTree() {
   }
@@ -16,6 +16,9 @@ public class QTree implements QueryTree {
   public void setSuchThatNode(SuchThatNode stn) {
     this.suchThatNode = stn;
   }
+  public void setWithNode(WithNode wthn) {
+    this.withNode = wthn;
+  }
 
   @Override
   public QTNode getResultNode() {
@@ -24,11 +27,11 @@ public class QTree implements QueryTree {
 
   @Override
   public QTNode getSuchThatNode() {
-    return null;
+    return suchThatNode;
   }
 
   @Override
   public QTNode getWithNode() {
-    return null;
+    return withNode;
   }
 }

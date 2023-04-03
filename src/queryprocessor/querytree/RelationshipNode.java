@@ -10,4 +10,12 @@ public class RelationshipNode extends QTNode
     this.arg1 = new ArgNode(arg1, 1);
     this.arg2 = new ArgNode(arg2, 2);
   }
+
+  public ArgNode getArg1() {
+    return arg1;
+  }
+
+  public ArgNode getArg2() {
+    return arg2;
+  }
 }

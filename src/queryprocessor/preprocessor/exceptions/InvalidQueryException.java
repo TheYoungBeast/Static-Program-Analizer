@@ -1,6 +1,6 @@
 package queryprocessor.preprocessor.exceptions;
 
-public class InvalidQueryException extends Exception {
+public class InvalidQueryException extends Exception implements QueryException {
 
   private int line = 0;
 
@@ -27,6 +27,6 @@ public class InvalidQueryException extends Exception {
   }
 
   public String explain() {
-    return String.format("Invalid Query: Error at line {}: {}", line, details);
+    return String.format("[Invalid Query]: \n%s at line %d: %s", this.getMessage(), line, details);
   }
 }

@@ -31,12 +31,12 @@ public abstract class ASTNode implements TNode {
   }
 
   @Override
-  public void SetFirstChild(TNode node) {
+  public void setFirstChild(TNode node) {
     firstchild = (ASTNode) node;
   }
 
   @Override
-  public void SetRightSibling(TNode node) {
+  public void setRightSibling(TNode node) {
     rightSibling = (ASTNode) node;
   }
 
