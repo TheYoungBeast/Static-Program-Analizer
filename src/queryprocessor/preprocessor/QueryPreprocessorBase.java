@@ -242,6 +242,8 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
 
           if(tree.getSuchThatNode() != null)
             tree.getSuchThatNode().setRightSibling(wthNode);
+          else
+            tree.getResultNode().setRightSibling(wthNode);
         }
         //endregion
       }
