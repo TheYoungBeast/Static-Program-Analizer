@@ -162,7 +162,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
               rNode.setFirstChild(resNode);
               first = false;
             } else {
-              resNode.setParent(last);
+              resNode.setParent(rNode);
               last.setRightSibling(resNode);
             }
 
