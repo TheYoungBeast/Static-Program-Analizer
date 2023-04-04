@@ -2,11 +2,17 @@ package queryprocessor.querytree;
 
 public class ArgNode extends QTNode {
 
-  private int ArgNum = 0;
+  private final int ArgNum;
+  private final String identifier;
 
-  public ArgNode(String label, int ArgNum) {
-    super("arg" + ArgNum + label);
+  public ArgNode(String id, int ArgNum) {
+    super("arg" + ArgNum +": " + id);
     this.ArgNum = ArgNum;
+    this.identifier = id;
+  }
+
+  public String getIdentifier() {
+    return identifier;
   }
 
   public int getArgNum() {

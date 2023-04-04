@@ -23,7 +23,7 @@ public class Main {
 
     QueryTree qt = null;
     try {
-      qt = qp.parseQuery("assign a1, a2; while w; select a1, a2 such that Parent(a1, w) with a2.varName = \"x\";");
+      qt = qp.parseQuery("stmt s1; while w; select s1 such that Parent(s1, w) with s1.stmt#=2;");
     } catch (InvalidQueryException e) {
       System.err.println(e.explain());
     } catch (MissingArgumentException e) {

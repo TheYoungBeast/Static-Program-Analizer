@@ -197,7 +197,14 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
             }
           }
 
-          var r = new RelationshipNode(relType.getPattern(), "x", "1");
+          var argsMatcher = Pattern.compile(Keyword.ARGS2.getPattern(), Pattern.CASE_INSENSITIVE).matcher(line.substring(start));
+
+          if(!argsMatcher.find())
+            throw new MissingArgumentException(relType.getPattern(), i, line);
+
+          var args = argsMatcher.group().split(",");
+
+          var r = new RelationshipNode(relType, args[0].trim(), args[1].trim());
 
           var STNode = new SuchThatNode();
           tree.getResultNode().setRightSibling(STNode);
@@ -225,15 +232,24 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
           if(attrs.isEmpty())
             throw new InvalidQueryException("Invalid 'with clause'", i, line);
 
-          QTNode cond = null;
+          /*QTNode cond = null;
           for (String attr: attrs) {
             var res = attr.split("\\.");
+          }*/
 
-            if(res.length != 2)
-              throw new InvalidQueryException("Invalid attributeRef", i, attr);
+          var condMatcher = Pattern.compile(Keyword.ATTR2.getPattern(), Pattern.CASE_INSENSITIVE).matcher(line.substring(wStart));
 
-            cond = new ConditionNode(res[0].trim(), res[1].trim());
-          }
+          var attrValues = condMatcher
+                  .results()
+                  .map(mr -> mr.group().trim())
+                  .collect(Collectors.toList());
+
+          if(attrs.size() != attrValues.size())
+            throw new InvalidQueryException("Missing attribute value in 'with clause'", i, line.substring(wStart));
+
+          // loop
+          var res = attrs.get(0).split("\\.");
+          var cond = new ConditionNode(res[0].trim(), res[1].trim(), attrValues.get(0));
 
           var wthNode = new WithNode();
           tree.setWithNode(wthNode);
