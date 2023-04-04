@@ -31,10 +31,12 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
     cfg = node;
   }
 
+  @Override
   public ProcedureNode getAST() {
     return ast;
   }
 
+  @Override
   public CFGNode getCFG() {
     return cfg;
   }
@@ -47,6 +49,7 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
     modifies.computeIfAbsent(s, k -> new LinkedHashSet<>()).addAll(vs);
   }
 
+  @Override
   public Set<String> getModifies(int s) {
     return modifies.getOrDefault(s, Collections.emptySet());
   }
@@ -59,6 +62,7 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
     uses.computeIfAbsent(s, k -> new LinkedHashSet<>()).addAll(vs);
   }
 
+  @Override
   public Set<String> getUses(int s) {
     return uses.getOrDefault(s, Collections.emptySet());
   }

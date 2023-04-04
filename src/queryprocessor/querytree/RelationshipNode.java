@@ -1,6 +1,7 @@
 package queryprocessor.querytree;
 
 import queryprocessor.preprocessor.Keyword;
+import queryprocessor.preprocessor.Synonym;
 
 public class RelationshipNode extends QTNode
 {
@@ -8,7 +9,7 @@ public class RelationshipNode extends QTNode
   private final ArgNode arg2;
   private final Keyword relType;
 
-  public RelationshipNode(Keyword relType, String arg1, String arg2) {
+  public RelationshipNode(Keyword relType, Synonym arg1, Synonym arg2) {
     super(relType.getPattern());
     this.arg1 = new ArgNode(arg1, 1);
     this.arg2 = new ArgNode(arg2, 2);

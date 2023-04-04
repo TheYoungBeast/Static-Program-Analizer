@@ -13,5 +13,16 @@ public class ProcedureNode extends ASTNode {
   public ProcedureNode(String name, List<StatementNode> statements) {
     this.name = name;
     this.statements = statements;
+
+    ASTNode last = null;
+    this.setFirstChild(statements.get(0));
+    for (var s: statements) {
+      //s.setParent(this);
+
+      if(last!= null)
+        last.setRightSibling(s);
+
+      last = s;
+    }
   }
 }

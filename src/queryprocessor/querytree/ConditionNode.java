@@ -1,15 +1,16 @@
 package queryprocessor.querytree;
 
+import queryprocessor.preprocessor.Synonym;
+
 public class ConditionNode extends QTNode
 {
-    private final String synonym;
-    private final String attr;
     private final String condValue;
 
-    public ConditionNode(String synonym, String attr, String condValue) {
-        super("Attr: " + synonym+"."+attr + " = " + condValue);
-        this.synonym = synonym;
-        this.attr = attr;
+    public ConditionNode(AttrRef ref, String condValue) {
+        super("Attr: " + ref.getSynonym().getIdentifier()+"."+ref.getAttrName().getName() + " = " + condValue);
+        ref.setParent(this);
+        this.setFirstChild(ref);
+
         this.condValue = condValue;
     }
 }

@@ -155,16 +155,14 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
           ResNode last = null;
 
           for (String v : selectVars) {
+            var resNode = new ResNode( this.findSynonym(v) );
+            resNode.setParent(rNode);
 
-            var resNode = new ResNode(v);
             if (first) {
-              resNode.setParent(rNode);
               rNode.setFirstChild(resNode);
               first = false;
-            } else {
-              resNode.setParent(rNode);
+            } else
               last.setRightSibling(resNode);
-            }
 
             last = resNode;
           }
@@ -179,7 +177,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
         // such that clause
         if(matcher.find())
         {
-          var ststart = matcher.end();
+          var stStart = matcher.end();
 
           HashSet<Keyword> relationships = new HashSet<>(
               Arrays.asList(Keyword.FOLLOWS, Keyword.PARENT, Keyword.MODIFIES)
@@ -190,7 +188,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
           for (Keyword rel: relationships) {
             var relMatcher = Pattern.compile(Pattern.quote(rel.getPattern()), Pattern.CASE_INSENSITIVE).matcher(line);
 
-            if(relMatcher.find(ststart)) {
+            if(relMatcher.find(stStart)) {
               relType = rel;
               start = matcher.end();
               break;
@@ -204,7 +202,10 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
 
           var args = argsMatcher.group().split(",");
 
-          var r = new RelationshipNode(relType, args[0].trim(), args[1].trim());
+          var arg1 = this.findSynonym(args[0].trim());
+          var arg2 = this.findSynonym(args[1].trim());
+
+          var r = new RelationshipNode(relType, arg1, arg2);
 
           var STNode = new SuchThatNode();
           tree.getResultNode().setRightSibling(STNode);
@@ -249,7 +250,10 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
 
           // loop
           var res = attrs.get(0).split("\\.");
-          var cond = new ConditionNode(res[0].trim(), res[1].trim(), attrValues.get(0));
+          var syno = this.findSynonym(res[0].trim());
+          var attr = this.findAttrName(res[1].trim());
+
+          var cond = new ConditionNode(new AttrRef(syno, attr), attrValues.get(0));
 
           var wthNode = new WithNode();
           tree.setWithNode(wthNode);
@@ -270,5 +274,20 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
       }
 
     return tree;
+  }
+
+  private Synonym findSynonym(String id) {
+    var f = this.synonymsList.stream().filter(s -> s.getIdentifier().equals(id)).findFirst();
+
+    return f.get();
+  }
+
+  private AttrName findAttrName(String name) {
+    for (var attr: AttrName.values()) {
+      if(name.equals(attr.getName()))
+        return attr;
+    }
+
+    return null;
   }
 }
