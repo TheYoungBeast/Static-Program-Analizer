@@ -1,3 +1,4 @@
+import cfg.ControlFlowGraph;
 import frontend.lexer.Lexer;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
@@ -17,6 +18,7 @@ public class Main {
     List<Token> tokens = lexer.tokenize("example_source_code.txt");
     ProgramKnowledgeBase pkb = new ProgramKnowledgeBase();
     Parser.parse(tokens, pkb);
+    ControlFlowGraph.createCfg(pkb);
     System.out.println(pkb.getAST());
 
     var qp = new QueryPreprocessorBase();

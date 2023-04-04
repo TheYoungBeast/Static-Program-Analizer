@@ -1,5 +1,6 @@
 package pkb;
 
+import cfg.CFGNode;
 import frontend.ast.ProcedureNode;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,6 +16,8 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
 
   private ProcedureNode ast;
 
+  private CFGNode cfg;
+
   public ProgramKnowledgeBase() {
     modifies = new HashMap<>();
     uses = new HashMap<>();
@@ -24,8 +27,16 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
     ast = node;
   }
 
+  public void addCFG(CFGNode node) {
+    cfg = node;
+  }
+
   public ProcedureNode getAST() {
     return ast;
+  }
+
+  public CFGNode getCFG() {
+    return cfg;
   }
 
   public void addModifies(int s, String v) {
