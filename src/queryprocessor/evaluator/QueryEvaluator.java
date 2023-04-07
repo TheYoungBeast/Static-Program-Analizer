@@ -1,6 +1,6 @@
 package queryprocessor.evaluator;
 
-import frontend.ast.abstraction.ASTNode;
+import pkb.ast.abstraction.ASTNode;
 import queryprocessor.querytree.QueryTree;
 
 import java.util.List;

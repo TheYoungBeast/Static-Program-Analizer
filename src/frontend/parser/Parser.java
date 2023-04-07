@@ -2,12 +2,12 @@ package frontend.parser;
 
 import static frontend.parser.ParseProcedure.parseProcedure;
 
-import frontend.ast.AssignmentNode;
-import frontend.ast.PlusNode;
-import frontend.ast.VariableNode;
-import frontend.ast.WhileNode;
-import frontend.ast.abstraction.ExpressionNode;
-import frontend.ast.abstraction.StatementNode;
+import pkb.ast.AssignmentNode;
+import pkb.ast.PlusNode;
+import pkb.ast.VariableNode;
+import pkb.ast.WhileNode;
+import pkb.ast.abstraction.ExpressionNode;
+import pkb.ast.abstraction.StatementNode;
 import frontend.lexer.Token;
 import frontend.lexer.TokenType;
 import java.util.List;

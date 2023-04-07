@@ -1,7 +1,7 @@
-package frontend.ast;
+package pkb.ast;
 
-import frontend.ast.abstraction.ExpressionNode;
-import frontend.ast.abstraction.StatementNode;
+import pkb.ast.abstraction.ExpressionNode;
+import pkb.ast.abstraction.StatementNode;
 
 public class AssignmentNode extends StatementNode {
 

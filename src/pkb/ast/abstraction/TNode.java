@@ -1,4 +1,4 @@
-package frontend.ast.abstraction;
+package pkb.ast.abstraction;
 
 // Rozdział 16.3
 // 16.3 Notes on AST

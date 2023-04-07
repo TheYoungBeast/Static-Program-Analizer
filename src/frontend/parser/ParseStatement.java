@@ -5,7 +5,7 @@ import static frontend.parser.ParseWhile.parseWhile;
 import static frontend.parser.Parser.check;
 import static frontend.parser.Parser.updateRelations;
 
-import frontend.ast.abstraction.StatementNode;
+import pkb.ast.abstraction.StatementNode;
 import frontend.lexer.TokenType;
 import java.util.concurrent.atomic.AtomicInteger;
 

@@ -1,6 +1,6 @@
 package queryprocessor.querytree;
 
-import frontend.ast.abstraction.ASTNode;
+import pkb.ast.abstraction.ASTNode;
 
 import java.util.function.Function;
 

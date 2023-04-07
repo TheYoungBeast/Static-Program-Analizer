@@ -1,6 +1,6 @@
-package frontend.ast;
+package pkb.ast;
 
-import frontend.ast.abstraction.ExpressionNode;
+import pkb.ast.abstraction.ExpressionNode;
 
 public class PlusNode extends ExpressionNode {
 

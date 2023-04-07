@@ -3,9 +3,9 @@ package frontend.parser;
 import static frontend.parser.Parser.check;
 import static frontend.parser.Parser.match;
 
-import frontend.ast.ConstantNode;
-import frontend.ast.VariableNode;
-import frontend.ast.abstraction.ExpressionNode;
+import pkb.ast.ConstantNode;
+import pkb.ast.VariableNode;
+import pkb.ast.abstraction.ExpressionNode;
 import frontend.lexer.TokenType;
 
 class ParseTerm {

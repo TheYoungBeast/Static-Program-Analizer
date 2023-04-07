@@ -1,7 +1,7 @@
 package queryprocessor.preprocessor;
 
-import frontend.ast.abstraction.ASTNode;
-import frontend.ast.abstraction.StatementNode;
+import pkb.ast.abstraction.ASTNode;
+import pkb.ast.abstraction.StatementNode;
 
 import java.util.Objects;
 

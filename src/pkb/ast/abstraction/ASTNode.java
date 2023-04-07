@@ -1,4 +1,4 @@
-package frontend.ast.abstraction;
+package pkb.ast.abstraction;
 
 // rozdział 16.3 Handbook
 public abstract class ASTNode implements TNode {

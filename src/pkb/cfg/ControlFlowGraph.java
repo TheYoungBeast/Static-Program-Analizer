@@ -1,7 +1,7 @@
-package cfg;
+package pkb.cfg;
 
-import frontend.ast.WhileNode;
-import frontend.ast.abstraction.StatementNode;
+import pkb.ast.WhileNode;
+import pkb.ast.abstraction.StatementNode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

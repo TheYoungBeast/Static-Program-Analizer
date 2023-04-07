@@ -3,9 +3,9 @@ package frontend.parser;
 import static frontend.parser.ParseExpresion.parseExpression;
 import static frontend.parser.Parser.match;
 
-import frontend.ast.AssignmentNode;
-import frontend.ast.abstraction.ExpressionNode;
-import frontend.ast.abstraction.StatementNode;
+import pkb.ast.AssignmentNode;
+import pkb.ast.abstraction.ExpressionNode;
+import pkb.ast.abstraction.StatementNode;
 import frontend.lexer.TokenType;
 
 class ParseAssignment {

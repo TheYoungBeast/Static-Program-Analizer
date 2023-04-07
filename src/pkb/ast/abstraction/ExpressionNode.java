@@ -1,4 +1,4 @@
-package frontend.ast.abstraction;
+package pkb.ast.abstraction;
 
 public abstract class ExpressionNode extends ASTNode {
 

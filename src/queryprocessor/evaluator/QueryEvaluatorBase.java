@@ -1,15 +1,8 @@
 package queryprocessor.evaluator;
 
-import frontend.ast.AssignmentNode;
-import frontend.ast.WhileNode;
-import frontend.ast.abstraction.ASTNode;
-import frontend.ast.abstraction.StatementNode;
-import frontend.ast.abstraction.TNode;
-import frontend.lexer.TokenType;
+import pkb.ast.abstraction.ASTNode;
 import pkb.ProgramKnowledgeBaseAPI;
-import queryprocessor.preprocessor.Keyword;
 import queryprocessor.preprocessor.Synonym;
-import queryprocessor.querytree.QTNode;
 import queryprocessor.querytree.QueryTree;
 import queryprocessor.querytree.ResNode;
 

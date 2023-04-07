@@ -1,8 +1,8 @@
 package queryprocessor.preprocessor;
 
-import frontend.ast.AssignmentNode;
-import frontend.ast.WhileNode;
-import frontend.ast.abstraction.StatementNode;
+import pkb.ast.AssignmentNode;
+import pkb.ast.WhileNode;
+import pkb.ast.abstraction.StatementNode;
 
 public class SynonymFactory {
     public static Synonym create(String identifier, Keyword k) {

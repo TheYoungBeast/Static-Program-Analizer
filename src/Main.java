@@ -1,5 +1,5 @@
-import cfg.ControlFlowGraph;
-import frontend.ast.abstraction.StatementNode;
+import pkb.cfg.ControlFlowGraph;
+import pkb.ast.abstraction.StatementNode;
 import frontend.lexer.Lexer;
 import frontend.lexer.Token;
 import frontend.parser.Parser;

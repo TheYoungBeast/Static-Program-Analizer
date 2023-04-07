@@ -1,7 +1,7 @@
 package pkb;
 
-import cfg.CFGNode;
-import frontend.ast.ProcedureNode;
+import pkb.cfg.CFGNode;
+import pkb.ast.ProcedureNode;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;

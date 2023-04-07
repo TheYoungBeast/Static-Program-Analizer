@@ -1,13 +1,10 @@
 package queryprocessor.querytree;
 
-import frontend.ast.ProcedureNode;
-import frontend.ast.VariableNode;
-import frontend.ast.abstraction.ASTNode;
-import queryprocessor.preprocessor.Synonym;
+import pkb.ast.ProcedureNode;
+import pkb.ast.VariableNode;
+import pkb.ast.abstraction.ASTNode;
 
 import java.util.function.Function;
-
-import static queryprocessor.querytree.AttrName.*;
 
 public class ResANode extends ResNode {
     private final AttrRef attrRef;

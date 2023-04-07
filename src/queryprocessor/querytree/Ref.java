@@ -1,6 +1,6 @@
 package queryprocessor.querytree;
 
-import frontend.ast.abstraction.StatementNode;
+import pkb.ast.abstraction.StatementNode;
 import queryprocessor.preprocessor.Synonym;
 
 import java.util.function.Function;

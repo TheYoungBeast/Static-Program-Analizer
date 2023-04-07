@@ -1,6 +1,6 @@
 package queryprocessor.querytree;
 
-import frontend.ast.abstraction.TNode;
+import pkb.ast.abstraction.TNode;
 
 public class QTNode implements TNode {
 

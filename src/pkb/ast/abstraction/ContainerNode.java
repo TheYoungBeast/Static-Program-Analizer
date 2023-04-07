@@ -1,6 +1,6 @@
-package frontend.ast.abstraction;
+package pkb.ast.abstraction;
 
-import frontend.ast.VariableNode;
+import pkb.ast.VariableNode;
 import java.util.List;
 
 public abstract class ContainerNode extends StatementNode {

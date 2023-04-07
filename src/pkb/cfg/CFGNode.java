@@ -1,4 +1,4 @@
-package cfg;
+package pkb.cfg;
 
 import java.util.ArrayList;
 import java.util.List;

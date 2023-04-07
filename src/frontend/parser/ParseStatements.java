@@ -3,7 +3,7 @@ package frontend.parser;
 import static frontend.parser.ParseStatement.parseStatement;
 import static frontend.parser.Parser.check;
 
-import frontend.ast.abstraction.StatementNode;
+import pkb.ast.abstraction.StatementNode;
 import frontend.lexer.TokenType;
 import java.util.ArrayList;
 import java.util.List;

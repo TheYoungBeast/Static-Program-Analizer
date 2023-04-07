@@ -4,9 +4,9 @@ import static frontend.parser.ParseStatements.parseStatements;
 import static frontend.parser.ParseTerm.parseTerm;
 import static frontend.parser.Parser.match;
 
-import frontend.ast.VariableNode;
-import frontend.ast.WhileNode;
-import frontend.ast.abstraction.StatementNode;
+import pkb.ast.VariableNode;
+import pkb.ast.WhileNode;
+import pkb.ast.abstraction.StatementNode;
 import frontend.lexer.TokenType;
 import java.util.List;
 
