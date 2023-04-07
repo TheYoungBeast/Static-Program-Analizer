@@ -5,10 +5,13 @@ import pkb.ProgramKnowledgeBaseAPI;
 import queryprocessor.preprocessor.Synonym;
 import queryprocessor.querytree.QueryTree;
 import queryprocessor.querytree.ResNode;
+import utils.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class QueryEvaluatorBase implements QueryEvaluator
 {
@@ -19,19 +22,25 @@ public class QueryEvaluatorBase implements QueryEvaluator
     }
 
     @Override
-    public List<ASTNode> evaluate(QueryTree queryTree) {
-        var synonyms = new ArrayList<Synonym>();
+    public List<Pair<ASTNode, Function<ASTNode, String>>> evaluate(QueryTree queryTree) {
+        var results = new ArrayList<Pair<ASTNode, Function<ASTNode, String>>>();
+
+        var resultNodes = new ArrayList<ResNode>();
         var node = queryTree.getResultNode().getFirstChild();
 
         while(node != null)
         {
-            synonyms.add(((ResNode) node).getSynonym());
+            if(node instanceof ResNode)
+                resultNodes.add((ResNode) node);
             node = node.getRightSibling();
         }
 
-        var s = synonyms.get(0);
+        var s = resultNodes.get(0).getSynonym();
 
-        return this.getMatchingNodes(pkb.getAST(), s);
+        return this.getMatchingNodes(pkb.getAST(), s)
+                .stream()
+                .map(n -> new Pair<ASTNode, Function<ASTNode, String>>(n, resultNodes.get(0).getExtractor()))
+                .collect(Collectors.toList());
     }
 
     private List<ASTNode> getMatchingNodes(ASTNode head, Synonym s) {

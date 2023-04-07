@@ -14,6 +14,7 @@ import queryprocessor.preprocessor.exceptions.InvalidQueryException;
 import queryprocessor.preprocessor.exceptions.MissingArgumentException;
 import queryprocessor.querytree.QTNode;
 import queryprocessor.querytree.QueryTree;
+import queryresultprojector.QueryResultProjector;
 
 public class Main {
 
@@ -30,7 +31,7 @@ public class Main {
     QueryTree qt = null;
     try {
 //      qt = qp.parseQuery("stmt s1,s2; while w; select s1, s2 such that Parent(s1, w) with s1.stmt#=2;");
-      qt = qp.parseQuery("stmt s1;Select s1 such that Parent(s1, s1)");
+      qt = qp.parseQuery("while s1;Select s1 such that Parent(s1, s1)");
     } catch (InvalidQueryException e) {
       System.err.println(e.explain());
     } catch (MissingArgumentException e) {
@@ -58,10 +59,9 @@ public class Main {
     QueryEvaluator evaluator = new QueryEvaluatorBase(pkb);
     var list = evaluator.evaluate(qt);
 
-    // QUERY FORMAT PROJECTOR - DO NAPISANIA - FORMATOWANIE REZULTATOW
-    System.out.println("\nResults:\n");
-    for (var r: list) {
-      System.out.println(((StatementNode)r).getStatementId()+1);
-    }
+    var qrp = new QueryResultProjector();
+    qrp.setResultPairs(list);
+
+    System.out.println(qrp.format());
   }
 }
