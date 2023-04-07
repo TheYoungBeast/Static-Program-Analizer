@@ -17,7 +17,7 @@ public class AttrRef extends QTNode
         return synonym;
     }
 
-    public AttrName getAttrName() {
+    public AttrName getAttr() {
         return attrName;
     }
 }

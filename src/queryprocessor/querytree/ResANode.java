@@ -17,7 +17,7 @@ public class ResANode extends ResNode {
     @Override
     public Function<ASTNode, String> getExtractor() {
         return (ASTNode node) -> {
-            switch (attrRef.getAttrName()) {
+            switch (attrRef.getAttr()) {
                 case procName:
                     return ((ProcedureNode) node).getName();
                 case varName:
