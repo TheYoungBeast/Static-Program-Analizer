@@ -3,6 +3,7 @@ package queryprocessor.evaluator;
 import pkb.ast.abstraction.ASTNode;
 import pkb.ProgramKnowledgeBaseAPI;
 import queryprocessor.preprocessor.Synonym;
+import queryprocessor.querytree.ConditionNode;
 import queryprocessor.querytree.QueryTree;
 import queryprocessor.querytree.ResNode;
 import utils.Pair;
@@ -23,19 +24,29 @@ public class QueryEvaluatorBase implements QueryEvaluator
 
     @Override
     public List<Pair<ASTNode, Function<ASTNode, String>>> evaluate(QueryTree queryTree) {
-        var results = new ArrayList<Pair<ASTNode, Function<ASTNode, String>>>();
-
         var resultNodes = new ArrayList<ResNode>();
-        var node = queryTree.getResultNode().getFirstChild();
+        var node = queryTree.getResultsNode().getFirstChild();
 
         while(node != null)
         {
             if(node instanceof ResNode)
                 resultNodes.add((ResNode) node);
+            resultNodes.add((ResNode) node);
             node = node.getRightSibling();
         }
 
         var s = resultNodes.get(0).getSynonym();
+
+        var results1 = this.getMatchingNodes(pkb.getAST(), s);
+
+        if(queryTree.getWithNode() != null) {
+            var cond = queryTree.getWithNode().getFirstChild();
+
+            return results1.stream()
+                    .filter(r -> ((ConditionNode) cond).attrCompare(r))
+                    .map(n -> new Pair<ASTNode, Function<ASTNode, String>>(n, resultNodes.get(0).getExtractor()))
+                    .collect(Collectors.toList());
+        }
 
         return this.getMatchingNodes(pkb.getAST(), s)
                 .stream()

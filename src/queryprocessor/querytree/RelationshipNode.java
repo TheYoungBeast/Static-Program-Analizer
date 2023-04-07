@@ -3,33 +3,42 @@ package queryprocessor.querytree;
 import queryprocessor.preprocessor.Keyword;
 import queryprocessor.preprocessor.Synonym;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RelationshipNode extends QTNode
 {
-  private final ArgNode arg1;
-  private final ArgNode arg2;
-  private final Keyword relType;
+    private final List<ArgNode> args;
+    private final Keyword relType;
 
-  public RelationshipNode(Keyword relType, Synonym arg1, Synonym arg2) {
-    super(relType.getPattern());
-    this.arg1 = new ArgNode(arg1, 1);
-    this.arg2 = new ArgNode(arg2, 2);
-    this.relType = relType;
+    public RelationshipNode(Keyword relType, List<Synonym> argsSynonyms) {
+        super(relType.getName());
+        this.relType = relType;
+        this.args = new ArrayList<ArgNode>();
 
-    this.arg1.setParent(this);
-    this.arg2.setParent(this);
-    this.arg1.setRightSibling(this.arg2);
-    this.setFirstChild(this.arg1);
-  }
+        for (int i = 0; i < argsSynonyms.size(); i++)
+        {
+            var synonym = argsSynonyms.get(i);
+            var arg = new ArgNode(synonym, i+1);
 
-  public ArgNode getArg1() {
-    return arg1;
-  }
+            if(!args.isEmpty())
+                args.get(args.size()-1).setRightSibling(arg);
+            else
+                this.setFirstChild(arg);
 
-  public ArgNode getArg2() {
-    return arg2;
-  }
+            arg.setParent(this);
+            args.add(arg);
+        }
+    }
 
-  public Keyword getRelationshipType() {
-    return relType;
-  }
+    public int getArgSize() {
+        return args.size();
+    }
+
+    public ArgNode getArg(int id) {
+        return args.get(id);
+    }
+    public Keyword getRelationshipType() {
+        return relType;
+    }
 }
