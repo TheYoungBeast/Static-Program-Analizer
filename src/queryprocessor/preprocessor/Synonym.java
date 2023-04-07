@@ -1,11 +1,10 @@
 package queryprocessor.preprocessor;
 
 import pkb.ast.abstraction.ASTNode;
-import pkb.ast.abstraction.StatementNode;
 
 import java.util.Objects;
 
-public class Synonym <T extends StatementNode> {
+public class Synonym <T extends ASTNode> {
 
   private final String identifier;
   private final Keyword keyword;

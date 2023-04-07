@@ -70,7 +70,9 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
             Arrays.asList(
                 Keyword.WHILE,
                 Keyword.ASSIGN,
-                Keyword.STATEMENT)
+                Keyword.STATEMENT,
+                Keyword.PROCEDURE,
+                Keyword.VARIABLE)
         );
 
         int cnt = 0;
@@ -205,6 +207,12 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
           var arg1 = this.findSynonym(args[0].trim());
           var arg2 = this.findSynonym(args[1].trim());
 
+          if(arg1 == null)
+            throw new InvalidQueryException("Unrecognized parameter synonym", i, args[0]);
+
+          if(arg2 == null)
+            throw new InvalidQueryException("Unrecognized parameter synonym", i, args[1]);
+
           var r = new RelationshipNode(relType, arg1, arg2);
 
           var STNode = new SuchThatNode();
@@ -279,7 +287,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
   private Synonym findSynonym(String id) {
     var f = this.synonymsList.stream().filter(s -> s.getIdentifier().equals(id)).findFirst();
 
-    return f.get();
+    return f.isPresent() ? f.get() : null;
   }
 
   private AttrName findAttrName(String name) {

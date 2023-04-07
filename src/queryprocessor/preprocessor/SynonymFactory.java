@@ -1,6 +1,8 @@
 package queryprocessor.preprocessor;
 
 import pkb.ast.AssignmentNode;
+import pkb.ast.ProcedureNode;
+import pkb.ast.VariableNode;
 import pkb.ast.WhileNode;
 import pkb.ast.abstraction.StatementNode;
 
@@ -16,6 +18,12 @@ public class SynonymFactory {
                 break;
             case WHILE:
                 t = WhileNode.class;
+                break;
+            case PROCEDURE:
+                t = ProcedureNode.class;
+                break;
+            case VARIABLE:
+                t = VariableNode.class;
                 break;
             default:
                 throw new UnsupportedOperationException("Keyword support not implemented");

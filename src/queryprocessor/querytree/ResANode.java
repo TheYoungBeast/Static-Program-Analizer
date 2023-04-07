@@ -22,7 +22,7 @@ public class ResANode extends ResNode {
                     return ((ProcedureNode) node).getName();
                 case varName:
                     return ((VariableNode) node).getName();
-                default:
+                default: // case s.stmt#
                     return super.getExtractor().apply(node);
             }
         };

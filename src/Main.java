@@ -31,7 +31,7 @@ public class Main {
     QueryTree qt = null;
     try {
 //      qt = qp.parseQuery("stmt s1,s2; while w; select s1, s2 such that Parent(s1, w) with s1.stmt#=2;");
-      qt = qp.parseQuery("while s1;Select s1 such that Parent(s1, s1)");
+      qt = qp.parseQuery("procedure p; Select p;");
     } catch (InvalidQueryException e) {
       System.err.println(e.explain());
     } catch (MissingArgumentException e) {
@@ -62,6 +62,7 @@ public class Main {
     var qrp = new QueryResultProjector();
     qrp.setResultPairs(list);
 
+    System.out.println("Formatted results:");
     System.out.println(qrp.format());
   }
 }

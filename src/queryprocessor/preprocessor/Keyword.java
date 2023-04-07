@@ -9,6 +9,8 @@ public enum Keyword {
   STATEMENT("stmt"),
   ASSIGN("assign"),
   WHILE("while"),
+  PROCEDURE("procedure"),
+  VARIABLE("variable"),
   FOLLOWS("Follows"),
   MODIFIES("Modifies"),
   T_MODIFIES("Modifies*"),
