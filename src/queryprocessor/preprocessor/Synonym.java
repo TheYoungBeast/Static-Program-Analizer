@@ -1,16 +1,24 @@
 package queryprocessor.preprocessor;
 
+import frontend.ast.abstraction.ASTNode;
+import frontend.ast.abstraction.StatementNode;
+
 import java.util.Objects;
 
-public class Synonym {
+public class Synonym <T extends StatementNode> {
 
   private final String identifier;
-
   private final Keyword keyword;
+  private final Class<T> syntaxType;
 
-  public Synonym(String identifier, Keyword keyword) {
+  public Synonym(String identifier, Keyword keyword, Class<T> syntaxType) {
     this.identifier = identifier;
     this.keyword = keyword;
+    this.syntaxType = syntaxType;
+  }
+
+  public boolean isDerivative(ASTNode node) {
+      return syntaxType.isAssignableFrom(node.getClass());
   }
 
   public String getIdentifier() {
@@ -23,12 +31,12 @@ public class Synonym {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
+      if (this == o)
           return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
+
+      if (o == null || getClass() != o.getClass())
           return false;
-      }
+
     Synonym synonym = (Synonym) o;
     return identifier.equals(synonym.identifier) && keyword == synonym.keyword;
   }

@@ -27,7 +27,6 @@ public class QueryEvaluatorBase implements QueryEvaluator
 
     @Override
     public List<ASTNode> evaluate(QueryTree queryTree) {
-
         var synonyms = new ArrayList<Synonym>();
         var node = queryTree.getResultNode().getFirstChild();
 
@@ -39,18 +38,13 @@ public class QueryEvaluatorBase implements QueryEvaluator
 
         var s = synonyms.get(0);
 
-        var r1 = getNodesByType(pkb.getAST(), s.getKeyword());
-
-
-        return r1;
+        return this.getMatchingNodes(pkb.getAST(), s);
     }
 
-    private List<ASTNode> getNodesByType(ASTNode head, Keyword k) {
+    private List<ASTNode> getMatchingNodes(ASTNode head, Synonym s) {
         var result = new ArrayList<ASTNode>();
+        ASTNode node = head;
 
-        var node = head;
-
-        // trawersowanie drzewa QTNode / TNode / ASTNode
         Stack<ASTNode> nodeStack = new Stack<>();
         do {
             if(node == null) {
@@ -60,20 +54,8 @@ public class QueryEvaluatorBase implements QueryEvaluator
             }
             nodeStack.add(node.getRightSibling());
 
-            switch (k) {
-                case STATEMENT:
-                    if(node instanceof StatementNode)
-                        result.add(node);
-                    break;
-                case ASSIGN:
-                    if(node instanceof AssignmentNode)
-                        result.add(node);
-                    break;
-                case WHILE:
-                    if(node instanceof WhileNode)
-                        result.add(node);
-                    break;
-            }
+            if(s.isDerivative(node))
+                result.add(node);
 
             node = node.getFirstChild();
         } while(!nodeStack.empty() || node != null);

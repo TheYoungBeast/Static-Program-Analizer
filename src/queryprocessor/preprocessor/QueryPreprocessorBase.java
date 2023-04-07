@@ -104,7 +104,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor {
           }
 
         for (String synonym : synonyms) {
-          var s = new Synonym(synonym, type);
+          var s = SynonymFactory.create(synonym, type);
             if (synonymsList.contains(s)) {
                 throw new InvalidQueryException("Synonym already declared", i, synonym);
             } else {

@@ -6,7 +6,7 @@ import java.util.List;
 
 public class ProcedureNode extends ASTNode {
 
-  String name;
+  private final String name;
 
   public List<StatementNode> statements;
 
@@ -24,5 +24,9 @@ public class ProcedureNode extends ASTNode {
 
       last = s;
     }
+  }
+
+  public String getName() {
+    return name;
   }
 }
