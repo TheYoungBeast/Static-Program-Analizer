@@ -7,7 +7,7 @@ public enum AttrName
     value("value"),
     stmtNo("stmt#");
 
-    private String attrName;
+    private final String attrName;
 
     AttrName(String attr) {
         this.attrName = attr;

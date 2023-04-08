@@ -31,7 +31,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
         {
             if(node instanceof ResNode)
                 resultNodes.add((ResNode) node);
-            resultNodes.add((ResNode) node);
+
             node = node.getRightSibling();
         }
 
@@ -44,17 +44,17 @@ public class QueryEvaluatorBase implements QueryEvaluator
 
             return results1.stream()
                     .filter(r -> ((ConditionNode) cond).attrCompare(r))
-                    .map(n -> new Pair<ASTNode, Function<ASTNode, String>>(n, resultNodes.get(0).getExtractor()))
+                    .map(n -> new Pair<>(n, resultNodes.get(0).getExtractor()))
                     .collect(Collectors.toList());
         }
 
         return this.getMatchingNodes(pkb.getAST(), s)
                 .stream()
-                .map(n -> new Pair<ASTNode, Function<ASTNode, String>>(n, resultNodes.get(0).getExtractor()))
+                .map(n -> new Pair<>(n, resultNodes.get(0).getExtractor()))
                 .collect(Collectors.toList());
     }
 
-    private List<ASTNode> getMatchingNodes(ASTNode head, Synonym s) {
+    private List<ASTNode> getMatchingNodes(ASTNode head, Synonym<?> s) {
         var result = new ArrayList<ASTNode>();
         ASTNode node = head;
 

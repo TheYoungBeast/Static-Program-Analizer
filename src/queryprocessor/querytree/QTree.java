@@ -36,7 +36,7 @@ public class QTree implements QueryTree
         this.setNode(node, resultsNode);
     }
 
-    public void addRelationshipNode(RelationshipNode node) {
+    public void addRelationshipNode(RelationshipRef node) {
         if(suchThatNode == null)
             this.createSuchThatNode();
 

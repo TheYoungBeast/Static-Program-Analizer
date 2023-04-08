@@ -6,15 +6,15 @@ import queryprocessor.preprocessor.Synonym;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RelationshipNode extends QTNode
+public class RelationshipRef extends QTNode
 {
     private final List<ArgNode> args;
     private final Keyword relType;
 
-    public RelationshipNode(Keyword relType, List<Synonym> argsSynonyms) {
+    public RelationshipRef(Keyword relType, List<Synonym<?>> argsSynonyms) {
         super(relType.getName());
         this.relType = relType;
-        this.args = new ArrayList<ArgNode>();
+        this.args = new ArrayList<>();
 
         for (int i = 0; i < argsSynonyms.size(); i++)
         {

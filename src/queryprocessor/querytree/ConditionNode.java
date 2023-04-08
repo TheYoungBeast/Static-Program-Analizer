@@ -1,6 +1,5 @@
 package queryprocessor.querytree;
 
-import pkb.ast.AssignmentNode;
 import pkb.ast.abstraction.StatementNode;
 
 public class ConditionNode extends QTNode

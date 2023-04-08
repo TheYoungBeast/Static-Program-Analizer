@@ -5,9 +5,9 @@ import java.util.List;
 
 public class CFGNode {
 
-  int statementId;
+  final int statementId;
 
-  List<CFGNode> successors;
+  final List<CFGNode> successors;
 
   CFGNode(int statementId) {
     this.statementId = statementId;

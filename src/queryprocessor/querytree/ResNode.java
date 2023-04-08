@@ -10,14 +10,14 @@ import java.util.function.Function;
 
 public class ResNode extends QTNode {
 
-  private final Synonym synonym;
+  private final Synonym<?> synonym;
 
-  public ResNode(Synonym s) {
+  public ResNode(Synonym<?> s) {
     super(s.getIdentifier());
     this.synonym = s;
   }
 
-  public Synonym getSynonym() {
+  public Synonym<?> getSynonym() {
     return synonym;
   }
 

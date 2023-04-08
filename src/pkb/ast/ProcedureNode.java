@@ -8,7 +8,7 @@ public class ProcedureNode extends ASTNode {
 
   private final String name;
 
-  public List<StatementNode> statements;
+  public final List<StatementNode> statements;
 
   public ProcedureNode(String name, List<StatementNode> statements) {
     this.name = name;

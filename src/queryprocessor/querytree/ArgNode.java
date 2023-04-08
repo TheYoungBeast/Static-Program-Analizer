@@ -6,16 +6,16 @@ public class ArgNode extends QTNode {
 
   private final int ArgNum;
   private final String identifier;
-  private final Synonym synonym;
+  private final Synonym<?> synonym;
 
-  public ArgNode(Synonym s, int ArgNum) {
+  public ArgNode(Synonym<?> s, int ArgNum) {
     super("arg" + ArgNum +": " + s.getIdentifier());
     this.ArgNum = ArgNum;
     this.identifier = s.getIdentifier();
     this.synonym = s;
   }
 
-  public Synonym getSynonym() {
+  public Synonym<?> getSynonym() {
     return synonym;
   }
 

@@ -10,6 +10,6 @@ public abstract class Ref extends QTNode{
         super(label);
     }
 
-    public abstract Synonym getSynonym();
+    public abstract Synonym<?> getSynonym();
     public abstract Function<StatementNode, String> getExtractor();
 }

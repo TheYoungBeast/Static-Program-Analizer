@@ -4,16 +4,16 @@ import queryprocessor.preprocessor.Synonym;
 
 public class AttrRef extends QTNode
 {
-    private final Synonym synonym;
+    private final Synonym<?> synonym;
     private final AttrName attrName;
 
-    public AttrRef(Synonym s, AttrName a) {
+    public AttrRef(Synonym<?> s, AttrName a) {
         super("AttrRef: " + s.getIdentifier() + "." + a.getName());
         this.synonym = s;
         this.attrName = a;
     }
 
-    public Synonym getSynonym() {
+    public Synonym<?> getSynonym() {
         return synonym;
     }
 

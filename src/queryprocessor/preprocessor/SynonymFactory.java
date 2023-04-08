@@ -4,11 +4,14 @@ import pkb.ast.AssignmentNode;
 import pkb.ast.ProcedureNode;
 import pkb.ast.VariableNode;
 import pkb.ast.WhileNode;
+import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.StatementNode;
 
-public class SynonymFactory {
-    public static Synonym create(String identifier, Keyword k) {
-        Class<?> t;
+public class SynonymFactory
+{
+    public static Synonym<? extends ASTNode> create(String identifier, Keyword k)
+    {
+        Class<? extends ASTNode> t;
         switch (k) {
             case STATEMENT:
                t = StatementNode.class;

@@ -9,12 +9,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import queryprocessor.preprocessor.exceptions.InvalidQueryException;
 import queryprocessor.preprocessor.exceptions.MissingArgumentException;
+import queryprocessor.preprocessor.validators.CallsValidator;
 import queryprocessor.querytree.*;
 
 public class QueryPreprocessorBase implements QueryPreprocessor
 {
-    private final HashSet<Synonym> declaredSynonyms = new HashSet<>();
-    private final static HashSet<Keyword> synonymsKeywords = new HashSet<Keyword>(
+    private final HashSet<Synonym<?>> declaredSynonyms = new HashSet<>();
+    private final static HashSet<Keyword> synonymsKeywords = new HashSet<>(
             Arrays.asList(
                     Keyword.WHILE,
                     Keyword.ASSIGN,
@@ -37,9 +38,9 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
     private class RelationshipExtractor
     {
-        public List<RelationshipNode> extractRelationships(String line) throws InvalidQueryException, MissingArgumentException
+        public List<RelationshipRef> extractRelationships(String line) throws InvalidQueryException, MissingArgumentException
         {
-            var relationships = new ArrayList<RelationshipNode>();
+            var relationships = new ArrayList<RelationshipRef>();
 
             MatchResult lastResult = null;
             for (Keyword rel: relationshipsKeywords) {
@@ -68,8 +69,8 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                             throw new InvalidQueryException("Missing concatenator in between relationships", line);
                     }
 
-                    var args = extractArguments(line, rel, match.start(), line.length());
-                    relationships.add(new RelationshipNode(rel, args));
+                    var args = extractArguments(line, rel, match.start(), match.end());
+                    relationships.add(new RelationshipRef(rel, args));
 
                     lastResult = match;
                 }
@@ -78,20 +79,20 @@ public class QueryPreprocessorBase implements QueryPreprocessor
             return relationships;
         }
 
-        public List<Synonym> extractArguments(String query, Keyword relType, int start, int end) throws MissingArgumentException, InvalidQueryException
+        public List<Synonym<?>> extractArguments(String query, Keyword relType, int start, int end) throws MissingArgumentException, InvalidQueryException
         {
-            var argsMatcher = Pattern.compile(Keyword.ARGS2.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query).region(start, end);
+            var argsMatcher = Pattern.compile(Keyword.ARGS.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query).region(start, end);
 
             if(!argsMatcher.find())
                 throw new MissingArgumentException(relType.getName(), 0, query);
 
             var args = argsMatcher.group().split(",");
 
-            var arguments = new ArrayList<Synonym>();
+            var arguments = new ArrayList<Synonym<?>>();
             for (var arg: args) {
                 var synonym = findSynonym(arg.trim());
 
-                if(arg == null)
+                if(synonym == null)
                     throw new InvalidQueryException("Unrecognized parameter synonym", arg);
 
                 arguments.add(synonym);
@@ -177,22 +178,25 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                 //endregion
 
                 // region SUCH THAT
-                matcher = Pattern.compile(Pattern.quote(Keyword.SUCH_THAT.getRegExpr()), Pattern.CASE_INSENSITIVE).matcher(line);
-
-                // such that clause
-                if(matcher.find())
+                if(containsSuchThatClause(line))
                 {
                     var re = new RelationshipExtractor();
-                    var rels = re.extractRelationships(line);
+                    var relationships = re.extractRelationships(line);
 
                     tree.createSuchThatNode();
 
-                    for (var rel: rels)
+                    for (var rel: relationships) {
+                        if(rel.getRelationshipType() == Keyword.CALLS)
+                        {
+                            var v = new CallsValidator(rel);
+                            if(!v.isValid())
+                                throw new InvalidQueryException(v.getErrorMsg(), i, rel.getLabel());
+                        }
                         tree.addRelationshipNode(rel);
+                    }
 
-                    tree.getResultsNode().setRightSibling(tree.getSuchThatNode());
+                    tree.getResultsNode().setRightSibling(tree.getSuchThatNode()); // optional, only to make traversing easy
                 }
-
                 //endregion
 
                 //region WITH
@@ -224,10 +228,13 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
                     // loop
                     var res = attrs.get(0).split("\\.");
-                    var syno = this.findSynonym(res[0].trim());
+                    var synonym = this.findSynonym(res[0].trim());
                     var attr = this.findAttrName(res[1].trim());
 
-                    var cond = new ConditionNode(new AttrRef(syno, attr), attrValues.get(0));
+                    if(attr == null)
+                        throw new InvalidQueryException("Unrecognized attribute", i, res[1].trim());
+
+                    var cond = new ConditionNode(new AttrRef(synonym, attr), attrValues.get(0));
 
                     var wthNode = new WithNode();
                     tree.setWithNode(wthNode);
@@ -250,12 +257,12 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         return tree;
     }
 
-    private void parseSynonymDeclarations(String line, int lineNumber) throws InvalidQueryException {
+    private void parseSynonymDeclarations(String line, int lineNumber) throws InvalidQueryException
+    {
         Keyword type = null;
         int start = 0;
-        int i = lineNumber;
-
         int cnt = 0;
+
         for (Keyword keyword : synonymsKeywords) {
             var matcher = Pattern.compile(Pattern.quote(keyword.getRegExpr()),
                     Pattern.CASE_INSENSITIVE).matcher(line);
@@ -267,29 +274,26 @@ public class QueryPreprocessorBase implements QueryPreprocessor
             }
         }
 
-        if (cnt > 1) {
-            throw new InvalidQueryException("Multiple synonym types in one declaration", i, line);
-        }
+        if (cnt > 1)
+            throw new InvalidQueryException("Multiple synonym types in one declaration", lineNumber, line);
 
-        if (type == null) {
-            throw new InvalidQueryException("Unrecognized synonym definition", i, line);
-        }
+        if (type == null)
+            throw new InvalidQueryException("Unrecognized synonym definition", lineNumber, line);
 
         var synonyms = Pattern.compile(Keyword.SYNONYM.getRegExpr())
                 .matcher(line)
                 .region(start, line.length())
                 .results()
-                .map(mr -> mr.group())
+                .map(MatchResult::group)
                 .collect(Collectors.toList());
 
-        if (synonyms.isEmpty()) {
-            throw new InvalidQueryException("Missing synonym identifier", i, line);
-        }
+        if (synonyms.isEmpty())
+            throw new InvalidQueryException("Missing synonym identifier", lineNumber, line);
 
         for (String synonym : synonyms) {
             var s = SynonymFactory.create(synonym, type);
             if (declaredSynonyms.contains(s)) {
-                throw new InvalidQueryException("Synonym already declared", i, synonym);
+                throw new InvalidQueryException("Synonym already declared", lineNumber, synonym);
             } else {
                 declaredSynonyms.add(s);
             }
@@ -297,7 +301,8 @@ public class QueryPreprocessorBase implements QueryPreprocessor
     }
 
     private boolean containsSuchThatClause(String line) {
-        return false;
+        var pattern = Pattern.compile(Pattern.quote(Keyword.SUCH_THAT.getRegExpr()), Pattern.CASE_INSENSITIVE);
+        return pattern.matcher(line).find();
     }
 
     private boolean isQuery(String line) {
@@ -305,6 +310,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         return pattern.matcher(line).find();
     }
 
+    @SuppressWarnings("unused")
     private Keyword findRelationship(String relationship) {
         for (var rel: relationshipsKeywords)
         {
@@ -316,10 +322,10 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         return null;
     }
 
-    private Synonym findSynonym(String id) {
+    private Synonym<?> findSynonym(String id) {
         var f = this.declaredSynonyms.stream().filter(s -> s.getIdentifier().equals(id)).findFirst();
 
-        return f.isPresent() ? f.get() : null;
+        return f.orElse(null);
     }
 
     private AttrName findAttrName(String name) {
