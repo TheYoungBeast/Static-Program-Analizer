@@ -1,15 +1,35 @@
 package queryprocessor.preprocessor.validators;
 
-import java.util.regex.Pattern;
+import queryprocessor.querytree.RelationshipRef;
 
-public class CallsValidator implements QueryValidator
+import java.util.List;
+
+public class CallsValidator implements Validator
 {
-  public static final String regexCall = "\\s+Calls\\s*\\(\\s*(([a-zA-Z]+[0-9]*)|_)+\\s*,\\s*(([a-zA-Z]+[0-9]*)|_)+\\s*\\)\\s+";
+  private final RelationshipRef rel;
+  private final List<Validator> validatorsChain;
+  private String lastErrorMsg;
+
+  public CallsValidator(RelationshipRef rel) {
+    this.rel = rel;
+    this.validatorsChain = ValidatorFactory.createCallsValidatorChain(rel);
+  }
 
   @Override
-  public boolean isValid(String query) {
-    var matcher = Pattern.compile(regexCall, Pattern.CASE_INSENSITIVE).matcher(query);
+  public boolean isValid()
+  {
+    for (var validator: validatorsChain) {
+      if (!validator.isValid()) {
+        lastErrorMsg = validator.getErrorMsg();
+        return false;
+      }
+    }
 
-    return false;
+    return true;
+  }
+
+  @Override
+  public String getErrorMsg() {
+    return lastErrorMsg;
   }
 }
