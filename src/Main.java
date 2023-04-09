@@ -30,7 +30,7 @@ public class Main {
 
         QueryTree qt = null;
         try {
-            qt = qp.parseQuery("procedure p1, p2; while v; Select v, p1, p2 such that Parent(p1, v) and Calls(p2, p1) and Modifies(p2, v) with v.stmt# = 6;");
+            qt = qp.parseQuery("stmt s; while v; Select v such that Parent(v, s) with v.stmt# = 4");
         } catch (InvalidQueryException e) {
             System.err.println(e.explain());
         } catch (MissingArgumentException e) {

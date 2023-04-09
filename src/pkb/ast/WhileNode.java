@@ -14,7 +14,7 @@ public class WhileNode extends ContainerNode {
 
     ASTNode last = null;
     for (var s: statements) {
-      //s.setParent(this);
+      s.setParent(this);
 
       if(last!= null)
         last.setRightSibling(s);
