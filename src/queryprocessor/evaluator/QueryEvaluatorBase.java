@@ -96,14 +96,14 @@ public class QueryEvaluatorBase implements QueryEvaluator
                     resultLUT.computeIfAbsent(argChild.getSynonym(), l -> getMatchingNodes(pkb.getAST(), argChild.getSynonym()));
 
                     var results = new ArrayList<>(getParentChildPairs(
-                                    new ArrayList<ASTNode>(resultLUT.get(argParent.getSynonym())),
-                                    new ArrayList<>(resultLUT.get(argChild.getSynonym()))
+                            new ArrayList<>(resultLUT.get(argParent.getSynonym())),
+                            new ArrayList<>(resultLUT.get(argChild.getSynonym()))
                     ));
 
                     var parents = results.stream().map(Pair::getFirst).collect(Collectors.toList());
                     var children = results.stream().map(Pair::getSecond).collect(Collectors.toList());
 
-                    resultLUT.put(argParent.getSynonym(), new HashSet(parents));
+                    resultLUT.put(argParent.getSynonym(), new HashSet<>(parents));
                     resultLUT.put(argChild.getSynonym(), new HashSet<>(children));
                 }
             }

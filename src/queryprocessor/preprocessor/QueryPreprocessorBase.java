@@ -1,9 +1,6 @@
 package queryprocessor.preprocessor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -105,6 +102,19 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         {
             var matcher = Pattern.compile(Keyword.AND.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(line).region(start, end);
             return matcher.find();
+        }
+    }
+
+    private class ConditionExtractor
+    {
+        public List<ConditionNode> extractConditions(String line) throws InvalidQueryException
+        {
+            return Collections.emptyList();
+        }
+
+        public List<AttrRef> extractAttributes(String group)
+        {
+            return Collections.emptyList();
         }
     }
 
