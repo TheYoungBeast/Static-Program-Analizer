@@ -10,10 +10,7 @@ import queryprocessor.querytree.RelationshipRef;
 import queryprocessor.querytree.ResNode;
 import utils.Pair;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -25,13 +22,16 @@ public class QueryEvaluatorBase implements QueryEvaluator
         this.pkb = pkb;
     }
 
-    // CALA FUNKCJA I DZIALANIE DO POPRAWY
-    // OBECNIE WERSJA PRYMITYWNA, TESTOWA
-    // Ewaluuje proste zapytania takie jak: 'stmt s; while w; select w such that Parent(w, s) with w.stmt# = 4'
+    // METODA DO POPRAWY
+    // UPROSCIC PROCES... DUZO ZAGNIEZDZONYCH, SKOMPLIKOWANYCH TYPOW
+    // Ewaluuje zapytania zlozone z setow a takze relacji oraz warunkow: 'procedure p; while v; Select p, v such that Parent(p, v) with p.procName = "Rectangle"'
     @Override
-    public List<Pair<ASTNode, Function<ASTNode, String>>> evaluate(QueryTree queryTree) {
+    public EvaluationResult evaluate(QueryTree queryTree) {
         var resultNodes = new ArrayList<ResNode>();
         var node = queryTree.getResultsNode().getFirstChild();
+
+        var resultLUT = new HashMap<Synonym<?>, List<ASTNode>>();
+        var resultExtractors = new HashMap<Synonym<?>, Function<ASTNode, String>>();
 
         while(node != null)
         {
@@ -41,11 +41,34 @@ public class QueryEvaluatorBase implements QueryEvaluator
             node = node.getRightSibling();
         }
 
-        var s = resultNodes.get(0).getSynonym();
+        for (var resNode: resultNodes) {
+            var s = resNode.getSynonym();
+            resultLUT.computeIfAbsent(s, l -> this.getMatchingNodes(pkb.getAST(), s));
+            resultExtractors.computeIfAbsent(s, e -> resNode.getExtractor());
+        }
 
-        var results1 = this.getMatchingNodes(pkb.getAST(), s);
+        if(queryTree.getWithNode() != null) {
+            var conditions = new ArrayList<ConditionNode>();
+            var condNode =  queryTree.getWithNode().getFirstChild();
 
-        // CALY KOD DO POPRAWY
+            while (condNode != null) {
+                if(condNode instanceof ConditionNode)
+                    conditions.add((ConditionNode) condNode);
+
+                condNode = condNode.getRightSibling();
+            }
+
+            for (var condition: conditions) {
+                var wResults = resultLUT.get(condition.getAttrRef().getSynonym());
+
+                var cResult = wResults.stream()
+                        .filter(condition::attrCompare)
+                        .collect(Collectors.toList());
+
+                resultLUT.put(condition.getAttrRef().getSynonym(), cResult);
+            }
+        }
+
         if(queryTree.getSuchThatNode() != null)
         {
             var relNode = queryTree.getSuchThatNode().getFirstChild();
@@ -63,38 +86,24 @@ public class QueryEvaluatorBase implements QueryEvaluator
                     var argParent = relRef.getArg(0);
                     var argChild = relRef.getArg(1);
 
-                    var arg1Nodes = getMatchingNodes(pkb.getAST(), argParent.getSynonym());
-                    var arg2Nodes = getMatchingNodes(pkb.getAST(), argChild.getSynonym());
+                    resultLUT.computeIfAbsent(argParent.getSynonym(), l -> getMatchingNodes(pkb.getAST(), argParent.getSynonym()));
+                    resultLUT.computeIfAbsent(argChild.getSynonym(), l -> getMatchingNodes(pkb.getAST(), argChild.getSynonym()));
 
-                    int argN;
-                    if(s == argParent.getSynonym())
-                        argN = 0;
-                    else
-                        argN = 1;
-
-                    results1 = new HashSet<>(getParentChildPairs(arg1Nodes, arg2Nodes)
-                            .stream()
-                            .map(p -> argN == 0 ? p.getFirst() : p.getSecond())
-                            .collect(Collectors.toList()))
+                    var results =
+                            new HashSet<>(getParentChildPairs(resultLUT.get(argParent.getSynonym()), resultLUT.get(argChild.getSynonym())))
                             .stream()
                             .collect(Collectors.toList());
+
+                    var parents = results.stream().map(Pair::getFirst).collect(Collectors.toList());
+                    var children = results.stream().map(Pair::getSecond).collect(Collectors.toList());
+
+                    resultLUT.put(argParent.getSynonym(), parents);
+                    resultLUT.put(argChild.getSynonym(), children);
                 }
             }
         }
 
-        if(queryTree.getWithNode() != null) {
-            var cond = queryTree.getWithNode().getFirstChild();
-
-            return results1.stream()
-                    .filter(r -> ((ConditionNode) cond).attrCompare(r))
-                    .map(n -> new Pair<>(n, resultNodes.get(0).getExtractor()))
-                    .collect(Collectors.toList());
-        }
-
-        return results1
-                .stream()
-                .map(n -> new Pair<>(n, resultNodes.get(0).getExtractor()))
-                .collect(Collectors.toList());
+        return new EvaluationResult(resultLUT, resultExtractors);
     }
 
     // TEZ DO POPRAWY - POMYŚLEĆ NAD LEPSZĄ METODĄ

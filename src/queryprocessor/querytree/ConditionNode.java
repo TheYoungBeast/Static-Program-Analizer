@@ -1,11 +1,12 @@
 package queryprocessor.querytree;
 
+import pkb.ast.ProcedureNode;
 import pkb.ast.abstraction.StatementNode;
 
 public class ConditionNode extends QTNode
 {
     private final String condValue;
-    public final AttrRef attrRef;
+    private final AttrRef attrRef;
 
     public ConditionNode(AttrRef ref, String condValue) {
         super("Attr: " + ref.getSynonym().getIdentifier()+"."+ref.getAttr().getName() + " = " + condValue);
@@ -18,13 +19,20 @@ public class ConditionNode extends QTNode
 
     public boolean attrCompare(Object o)
     {
-        switch (attrRef.getAttr())
+        switch (getAttrRef().getAttr())
         {
             case stmtNo:
                 if(o instanceof StatementNode)
                     return ((StatementNode) o).getStatementId() == Integer.parseInt(condValue);
+            case procName:
+                if(o instanceof ProcedureNode)
+                    return ((ProcedureNode) o).getName().equals(condValue);
         }
 
         return false;
+    }
+
+    public AttrRef getAttrRef() {
+        return attrRef;
     }
 }

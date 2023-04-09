@@ -30,7 +30,7 @@ public class Main {
 
         QueryTree qt = null;
         try {
-            qt = qp.parseQuery("stmt s; while v; Select v such that Parent(v, s) with v.stmt# = 4");
+            qt = qp.parseQuery("procedure p; while v; Select p, v such that Parent(p, v) with p.procName = \"Rectangle\"");
         } catch (InvalidQueryException e) {
             System.err.println(e.explain());
         } catch (MissingArgumentException e) {
@@ -56,10 +56,10 @@ public class Main {
         } while(!nodeStack.empty() || node != null);
 
         QueryEvaluator evaluator = new QueryEvaluatorBase(pkb);
-        var list = evaluator.evaluate(qt);
+        var evaluationResult = evaluator.evaluate(qt);
 
         var qrp = new QueryResultProjector();
-        qrp.setResultPairs(list);
+        qrp.setEvaluationResult(evaluationResult);
 
         System.out.println("\n\nFormatted results:");
         System.out.println(qrp.format());

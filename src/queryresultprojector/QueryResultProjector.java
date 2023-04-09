@@ -1,25 +1,34 @@
 package queryresultprojector;
 
-import pkb.ast.abstraction.ASTNode;
-import utils.Pair;
+import queryprocessor.evaluator.EvaluationResult;
 
-import java.util.List;
-import java.util.function.Function;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 
 public class QueryResultProjector
 {
-    private List<Pair<ASTNode, Function<ASTNode, String>>> resultPairs;
+    private EvaluationResult evaluationResult;
 
-    public void setResultPairs(List<Pair<ASTNode, Function<ASTNode, String>>> r) {
-        this.resultPairs = r;
+    public void setEvaluationResult(EvaluationResult result) {
+        this.evaluationResult = result;
     }
 
     public String format() {
         var builder = new StringBuilder();
 
-        for (var pair: resultPairs) {
-            builder.append(pair.getSecond().apply(pair.getFirst()));
-            builder.append(System.getProperty("line.separator"));
+        var LUT = evaluationResult.getLUT();
+        var extractorMap = evaluationResult.getExtractors();
+        var synonyms = extractorMap.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList());
+
+        for (var synonym: synonyms) {
+            var results = LUT.get(synonym);
+            var extractor = extractorMap.get(synonym);
+
+            for (var result: results) {
+                builder.append(String.format("%s: %s", synonym.getKeyword().getName(), extractor.apply(result)));
+                builder.append(System.getProperty("line.separator"));
+            }
         }
 
         return builder.toString();
