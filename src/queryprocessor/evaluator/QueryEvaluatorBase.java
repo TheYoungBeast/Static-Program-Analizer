@@ -26,12 +26,18 @@ public class QueryEvaluatorBase implements QueryEvaluator
     // UPROSCIC PROCES... DUZO ZAGNIEZDZONYCH, SKOMPLIKOWANYCH TYPOW
     // Ewaluuje zapytania zlozone z setow a takze relacji oraz warunkow: 'procedure p; while v; Select p, v such that Parent(p, v) with p.procName = "Rectangle"'
     @Override
-    public EvaluationResult evaluate(QueryTree queryTree) {
+    public EvaluationResult evaluate(QueryTree queryTree)
+    {
         var resultNodes = new ArrayList<ResNode>();
         var node = queryTree.getResultsNode().getFirstChild();
 
-        var resultLUT = new HashMap<Synonym<?>, List<ASTNode>>();
-        var resultExtractors = new HashMap<Synonym<?>, Function<ASTNode, String>>();
+        /**
+         * LinkedHashMap
+         * in addition to the uniqueness of elements, the order of elements in which they were added is also guaranteed
+         */
+
+        var resultLUT = new LinkedHashMap<Synonym<?>, Set<ASTNode>>();
+        var resultExtractors = new LinkedHashMap<Synonym<?>, Function<ASTNode, String>>();
 
         while(node != null)
         {
@@ -65,7 +71,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
                         .filter(condition::attrCompare)
                         .collect(Collectors.toList());
 
-                resultLUT.put(condition.getAttrRef().getSynonym(), cResult);
+                resultLUT.put(condition.getAttrRef().getSynonym(), new HashSet<>(cResult));
             }
         }
 
@@ -89,16 +95,16 @@ public class QueryEvaluatorBase implements QueryEvaluator
                     resultLUT.computeIfAbsent(argParent.getSynonym(), l -> getMatchingNodes(pkb.getAST(), argParent.getSynonym()));
                     resultLUT.computeIfAbsent(argChild.getSynonym(), l -> getMatchingNodes(pkb.getAST(), argChild.getSynonym()));
 
-                    var results =
-                            new HashSet<>(getParentChildPairs(resultLUT.get(argParent.getSynonym()), resultLUT.get(argChild.getSynonym())))
-                            .stream()
-                            .collect(Collectors.toList());
+                    var results = new ArrayList<>(getParentChildPairs(
+                                    new ArrayList<ASTNode>(resultLUT.get(argParent.getSynonym())),
+                                    new ArrayList<>(resultLUT.get(argChild.getSynonym()))
+                    ));
 
                     var parents = results.stream().map(Pair::getFirst).collect(Collectors.toList());
                     var children = results.stream().map(Pair::getSecond).collect(Collectors.toList());
 
-                    resultLUT.put(argParent.getSynonym(), parents);
-                    resultLUT.put(argChild.getSynonym(), children);
+                    resultLUT.put(argParent.getSynonym(), new HashSet(parents));
+                    resultLUT.put(argChild.getSynonym(), new HashSet<>(children));
                 }
             }
         }
@@ -127,7 +133,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
         return pairs;
     }
 
-    private List<ASTNode> getMatchingNodes(ASTNode head, Synonym<?> s) {
+    private Set<ASTNode> getMatchingNodes(ASTNode head, Synonym<?> s) {
         var result = new ArrayList<ASTNode>();
         ASTNode node = head;
 
@@ -146,6 +152,6 @@ public class QueryEvaluatorBase implements QueryEvaluator
             node = node.getFirstChild();
         } while(!nodeStack.empty() || node != null);
 
-        return result;
+        return new HashSet<>(result);
     }
 }
