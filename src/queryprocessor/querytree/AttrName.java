@@ -1,11 +1,13 @@
 package queryprocessor.querytree;
 
+import queryprocessor.preprocessor.Keyword;
+
 public enum AttrName
 {
-    procName("procName"),
-    varName("varName"),
-    value("value"),
-    stmtNo("stmt#");
+    procName(Keyword.PROCNAME.getRegExpr()),
+    varName(Keyword.VARNAME.getRegExpr()),
+    value(Keyword.VALUE.getRegExpr()),
+    stmtNo(Keyword.STMTNUMBER.getRegExpr());
 
     private final String attrName;
 

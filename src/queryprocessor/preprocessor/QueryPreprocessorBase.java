@@ -8,6 +8,7 @@ import queryprocessor.preprocessor.exceptions.InvalidQueryException;
 import queryprocessor.preprocessor.exceptions.MissingArgumentException;
 import queryprocessor.preprocessor.validators.CallsValidator;
 import queryprocessor.querytree.*;
+import utils.Pair;
 
 public class QueryPreprocessorBase implements QueryPreprocessor
 {
@@ -30,18 +31,60 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                     Keyword.AFFECTS, Keyword.T_AFFECTS)
     );
 
-    private final static String selectRegex = "select(\\s*)[a-zA-Z]+[0-9]*(\\s*)(,*(\\s*)[a-zA-Z]*[0-9]*)*";
     private final static String querySeparator = ";";
+
+    private class ResultSynonymExtractor {
+        public List<ResNode> extractSynonyms(String query) throws InvalidQueryException {
+            var resultNodes = new ArrayList<ResNode>();
+
+            var matcher = Pattern.compile(Keyword.SYNONYMS.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
+
+            if(!matcher.find())
+                return Collections.emptyList();
+
+            var group = matcher.group().trim();
+
+            List<String> identifiers = new ArrayList<>();
+            if(group.contains(",")) {
+                if(!group.matches(Keyword.RESULT_TUPLE.getRegExpr()))
+                    throw new InvalidQueryException("Invalid Result Tuple. Expected e.g. <res1, res2, ...>", group);
+
+                var resTuple = group.replaceAll("<|>", "");
+                identifiers = Arrays.stream(resTuple.split(",")).map(String::trim).collect(Collectors.toList());
+            }
+            else {
+                if(group.isBlank())
+                    return Collections.emptyList();
+
+                var booleanMatcher = Pattern.compile(Keyword.BOOLEAN.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(group);
+
+                if(booleanMatcher.find())
+                    resultNodes.add(new ResBooleanNode());
+                else
+                    identifiers.add(group.trim());
+            }
+
+            for (var id: identifiers) {
+                var synonym = findSynonym(id);
+                if(synonym == null)
+                    throw new InvalidQueryException(String.format("Undeclared synonym %s in the select clause", id),  group);
+
+                resultNodes.add(new ResNode(synonym));
+            }
+
+            return resultNodes;
+        }
+    }
 
     private class RelationshipExtractor
     {
-        public List<RelationshipRef> extractRelationships(String line) throws InvalidQueryException, MissingArgumentException
+        public List<RelationshipRef> extractRelationships(String query) throws InvalidQueryException, MissingArgumentException
         {
             var relationships = new ArrayList<RelationshipRef>();
 
             MatchResult lastResult = null;
             for (Keyword rel: relationshipsKeywords) {
-                var relMatcher = Pattern.compile(rel.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(line);
+                var relMatcher = Pattern.compile(rel.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
                 var matchResults = relMatcher.results().collect(Collectors.toList());
 
                 if(matchResults.isEmpty())
@@ -62,11 +105,11 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                             start = t;
                         }
 
-                        if(!containsConcatenator(line, start, end)) // e.g. [...] Parent(s1, s2) AND Uses(s1, "x")
-                            throw new InvalidQueryException("Missing concatenator in between relationships", line);
+                        if(!containsConcatenator(query, start, end)) // e.g. [...] Parent(s1, s2) AND Uses(s1, "x")
+                            throw new InvalidQueryException("Missing concatenator in between relationships", query);
                     }
 
-                    var args = extractArguments(line, rel, match.start(), match.end());
+                    var args = extractArguments(query, rel, match.start(), match.end());
                     relationships.add(new RelationshipRef(rel, args));
 
                     lastResult = match;
@@ -107,14 +150,43 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
     private class ConditionExtractor
     {
-        public List<ConditionNode> extractConditions(String line) throws InvalidQueryException
+        public List<ConditionNode> extractConditions(String query) throws InvalidQueryException
         {
-            return Collections.emptyList();
+            var conditions = new ArrayList<ConditionNode>();
+
+            var matcher = Pattern.compile(Keyword.WITH_CLAUSE.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
+            var matchResults = matcher.results().collect(Collectors.toList());
+
+            for (var match: matchResults) {
+                var result = match.group();
+                var pair = extractAttributes(result);
+                conditions.add(new ConditionNode(pair.getFirst(), pair.getSecond()));
+            }
+
+            return conditions;
         }
 
-        public List<AttrRef> extractAttributes(String group)
-        {
-            return Collections.emptyList();
+        public Pair<AttrRef, AttrValue> extractAttributes(String group) throws InvalidQueryException {
+            var cond = Arrays.stream(group.split("=")).map(String::trim).collect(Collectors.toList());
+            cond.set(0, cond.get(0).replaceAll(Keyword.WITH.getRegExpr(), "").trim());
+
+            var res = Arrays.stream(cond.get(0).split("\\.")).map(String::trim).collect(Collectors.toList());
+
+            var synonym = findSynonym(res.get(0));
+            var attr = findAttrName(res.get(1));
+
+            if(synonym == null)
+                throw new InvalidQueryException(String.format("Unrecognized synonym %s", res.get(0)), group);
+
+            if(attr == null)
+                throw new InvalidQueryException(String.format("Unrecognized attribute %s", res.get(1)), group);
+
+            var value = cond.get(1);
+
+            if(value.contains("\""))
+                value = value.replaceAll("\"", "");
+
+            return new Pair<>(new AttrRef(synonym, attr), new AttrValue(value));
         }
     }
 
@@ -154,37 +226,20 @@ public class QueryPreprocessorBase implements QueryPreprocessor
             if (!selectClauseExists)
                 parseSynonymDeclarations(line, i);
             else
-            // Query
             {
                 //region SELECT CLAUSE
-                var matcher = Pattern.compile(Keyword.SELECT.getRegExpr(), Pattern.CASE_INSENSITIVE)
-                        .matcher(line);
+                var rse = new ResultSynonymExtractor();
+                var resultSynonyms = rse.extractSynonyms(line);
 
-                var start = 0;
-                if (matcher.find())
-                    start = matcher.end();
-                else
-                    throw new UnknownError();
-
-                // get all synonyms in select clause
-                var selectVars = Pattern.compile(Keyword.SYNONYM.getRegExpr())
-                        .matcher(line).region(start, line.length())
-                        .results()
-                        .map(mr -> mr.group().trim())
-                        .collect(Collectors.toList());
-
-                for (String v : selectVars)
-                {
-                    if(this.findSynonym(v) == null)
-                        throw new InvalidQueryException("Undeclared synonym " + v + " in the select clause", i);
-                }
+                if(resultSynonyms.isEmpty())
+                    throw new InvalidQueryException("Empty select results. You need to specify the result or result's tuple in the select clause", i, line);
 
                 tree.createResultsNode();
 
-                for (String v : selectVars) {
-                    var resNode = new ResNode( this.findSynonym(v) );
-                    tree.addResNode(resNode);
+                for (var res: resultSynonyms) {
+                    tree.addResNode(res);
                 }
+
                 //endregion
 
                 // region SUCH THAT
@@ -194,6 +249,9 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                     var relationships = re.extractRelationships(line);
 
                     tree.createSuchThatNode();
+
+                    if(relationships.isEmpty())
+                        throw new InvalidQueryException("Invalid 'such that' clause", i, line);
 
                     for (var rel: relationships) {
                         if(rel.getRelationshipType() == Keyword.CALLS)
@@ -210,51 +268,25 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                 //endregion
 
                 //region WITH
-                matcher = Pattern.compile(Pattern.quote(Keyword.WITH.getRegExpr()), Pattern.CASE_INSENSITIVE).matcher(line);
+                if(containsWithClause(line))
+                {
+                    var ce = new ConditionExtractor();
+                    var conditions = ce.extractConditions(line);
 
-                // with clause
-                if(matcher.find()) {
-                    var wStart = matcher.end();
+                    tree.createWithNode();
 
-                    var attrs = Pattern.compile(Keyword.ATTR_COND.getRegExpr(), Pattern.CASE_INSENSITIVE)
-                            .matcher(line).region(wStart, line.length())
-                            .results()
-                            .map(mr -> mr.group().trim())
-                            .collect(Collectors.toList());
+                    if(conditions.isEmpty())
+                        throw new InvalidQueryException("Invalid 'with' clause", i, line);
 
-                    if(attrs.isEmpty())
-                        throw new InvalidQueryException("Invalid 'with clause'", i, line);
+                    for (var cond: conditions) {
+                        //dodac validatory
+                        tree.addConditionNode(cond);
+                    }
 
-
-                    var condMatcher = Pattern.compile(Keyword.ATTR2.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(line).region(wStart, line.length());
-
-                    var attrValues = condMatcher
-                            .results()
-                            .map(mr -> mr.group().trim())
-                            .collect(Collectors.toList());
-
-                    if(attrs.size() != attrValues.size())
-                        throw new InvalidQueryException("Missing attribute value in 'with clause'", i, line.substring(wStart));
-
-                    // loop
-                    var res = attrs.get(0).split("\\.");
-                    var synonym = this.findSynonym(res[0].trim());
-                    var attr = this.findAttrName(res[1].trim());
-
-                    if(attr == null)
-                        throw new InvalidQueryException("Unrecognized attribute", i, res[1].trim());
-
-                    var cond = new ConditionNode(new AttrRef(synonym, attr), attrValues.get(0));
-
-                    var wthNode = new WithNode();
-                    tree.setWithNode(wthNode);
-                    cond.setParent(cond);
-                    wthNode.setFirstChild(cond);
-
-                    if(tree.getSuchThatNode() != null)
-                        tree.getSuchThatNode().setRightSibling(wthNode);
+                    if(tree.getSuchThatNode() != null) // Opcjonalne, tylko po to zeby traversowac drzewko do printowania
+                        tree.getSuchThatNode().setRightSibling(tree.getWithNode());
                     else
-                        tree.getResultsNode().setRightSibling(wthNode);
+                        tree.getResultsNode().setRightSibling(tree.getWithNode());
                 }
                 //endregion
             }
@@ -310,13 +342,18 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         }
     }
 
+    private boolean containsWithClause(String line) {
+        var matcher = Pattern.compile(Pattern.quote(Keyword.WITH.getRegExpr()), Pattern.CASE_INSENSITIVE).matcher(line);
+        return matcher.find();
+    }
+
     private boolean containsSuchThatClause(String line) {
         var pattern = Pattern.compile(Pattern.quote(Keyword.SUCH_THAT.getRegExpr()), Pattern.CASE_INSENSITIVE);
         return pattern.matcher(line).find();
     }
 
     private boolean isQuery(String line) {
-        var pattern = Pattern.compile(selectRegex, Pattern.CASE_INSENSITIVE);
+        var pattern = Pattern.compile(Keyword.SELECT.getRegExpr(), Pattern.CASE_INSENSITIVE);
         return pattern.matcher(line).find();
     }
 

@@ -53,7 +53,8 @@ public class QueryEvaluatorBase implements QueryEvaluator
             resultExtractors.computeIfAbsent(s, e -> resNode.getExtractor());
         }
 
-        if(queryTree.getWithNode() != null) {
+        if(queryTree.getWithNode() != null)
+        {
             var conditions = new ArrayList<ConditionNode>();
             var condNode =  queryTree.getWithNode().getFirstChild();
 
@@ -65,7 +66,8 @@ public class QueryEvaluatorBase implements QueryEvaluator
             }
 
             for (var condition: conditions) {
-                var wResults = resultLUT.get(condition.getAttrRef().getSynonym());
+                var wResults = resultLUT.computeIfAbsent(condition.getAttrRef().getSynonym(),
+                        l -> getMatchingNodes(pkb.getAST(), condition.getAttrRef().getSynonym()));
 
                 var cResult = wResults.stream()
                         .filter(condition::attrCompare)

@@ -15,6 +15,16 @@ import queryprocessor.querytree.QTNode;
 import queryprocessor.querytree.QueryTree;
 import queryresultprojector.QueryResultProjector;
 
+/**
+ * Quality of Service
+ * Zamiennik makr - bo biedna java nie ma własnych...
+ */
+
+class QoS {
+    public static boolean verbose = false;
+    public static boolean printStackTree = true;
+}
+
 public class Main {
 
     public static void main(String[] args)
@@ -24,17 +34,18 @@ public class Main {
         ProgramKnowledgeBase pkb = new ProgramKnowledgeBase();
         Parser.parse(tokens, pkb);
         ControlFlowGraph.createCfg(pkb);
-        System.out.println(pkb.getAST());
+        if(QoS.verbose)
+            System.out.println(pkb.getAST());
 
         var qp = new QueryPreprocessorBase();
 
         QueryTree qt = null;
         try {
-            qt = qp.parseQuery("procedure p; stmt s; while v; Select p, s, v such that Parent(p, s) with v.stmt#=4");
-        } catch (InvalidQueryException e) {
+            qt = qp.parseQuery("procedure p; stmt s; while v; Select BOOLEAN such that Parent(p, s) with v.stmt#=12;");
+        } catch (InvalidQueryException | MissingArgumentException e) {
             System.err.println(e.explain());
-        } catch (MissingArgumentException e) {
-            System.err.println(e.explain());
+            if(QoS.printStackTree)
+                e.printStackTrace();
         }
 
         if(qt == null)
@@ -42,18 +53,20 @@ public class Main {
 
         var node = qt.getResultsNode();
 
-        // trawersowanie drzewa QTNode / TNode / ASTNode
-        Stack<QTNode> nodeStack = new Stack<>();
-        do {
-            if(node == null) {
-                if(!nodeStack.empty())
-                    node = nodeStack.pop();
-                continue;
-            }
-            nodeStack.add(node.getRightSibling());
-            System.out.println(node.getLabel());
-            node = node.getFirstChild();
-        } while(!nodeStack.empty() || node != null);
+        if(QoS.verbose) {
+            // trawersowanie drzewa QTNode / TNode / ASTNode
+            Stack<QTNode> nodeStack = new Stack<>();
+            do {
+                if (node == null) {
+                    if (!nodeStack.empty())
+                        node = nodeStack.pop();
+                    continue;
+                }
+                nodeStack.add(node.getRightSibling());
+                System.out.println(node.getLabel());
+                node = node.getFirstChild();
+            } while (!nodeStack.empty() || node != null);
+        }
 
         QueryEvaluator evaluator = new QueryEvaluatorBase(pkb);
         var evaluationResult = evaluator.evaluate(qt);
@@ -61,7 +74,7 @@ public class Main {
         var qrp = new QueryResultProjector();
         qrp.setEvaluationResult(evaluationResult);
 
-        System.out.println("\n\nFormatted results:");
+        System.out.println("\n");
         System.out.println(qrp.format());
     }
 }
