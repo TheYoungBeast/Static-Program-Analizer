@@ -13,7 +13,7 @@ public class ResNode extends QTNode {
   private final Synonym<?> synonym;
 
   public ResNode(Synonym<?> s) {
-    super(s.getIdentifier());
+    super(s == null ? "" : s.getIdentifier());
     this.synonym = s;
   }
 

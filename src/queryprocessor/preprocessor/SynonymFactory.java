@@ -28,6 +28,10 @@ public class SynonymFactory
             case VARIABLE:
                 t = VariableNode.class;
                 break;
+            case BOOLEAN:
+                t = ASTNode.class;
+                identifier = "";
+                break;
             default:
                 throw new UnsupportedOperationException("Keyword support not implemented");
         }

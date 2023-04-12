@@ -2,8 +2,10 @@ package queryresultprojector;
 
 import pkb.ast.abstraction.ASTNode;
 import queryprocessor.evaluator.EvaluationResult;
+import queryprocessor.preprocessor.Keyword;
 import utils.CartesianProduct;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -31,6 +33,23 @@ public class QueryResultProjector
         var cartesianProduct = new CartesianProduct<ASTNode>();
         var product = cartesianProduct.product(results);
 
+        if(synonyms.stream().anyMatch(s -> s.getKeyword().equals(Keyword.BOOLEAN))) {
+            builder.append(String.format("1 result(s): \n", product.size()));
+            builder.append(
+                    extractorMap.get(synonyms.get(0))
+                            .apply(product.stream()
+                                            .findAny()
+                                            .orElse(Collections.emptyList())
+                                            .stream()
+                                            .findAny()
+                                            .orElse(null)
+                            )
+            );
+
+            return builder.toString();
+        }
+
+        builder.append(String.format("%d result(s): \n", product.size()));
 
         for(int p = 0; p < product.size(); p++)
         {

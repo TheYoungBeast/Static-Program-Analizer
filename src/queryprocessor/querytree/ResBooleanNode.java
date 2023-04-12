@@ -1,13 +1,15 @@
 package queryprocessor.querytree;
 
 import pkb.ast.abstraction.ASTNode;
+import queryprocessor.preprocessor.Keyword;
+import queryprocessor.preprocessor.SynonymFactory;
 
 import java.util.function.Function;
 
 public class ResBooleanNode extends ResNode
 {
     public ResBooleanNode() {
-        super(null);
+        super(SynonymFactory.create("", Keyword.BOOLEAN));
     }
 
     @Override
