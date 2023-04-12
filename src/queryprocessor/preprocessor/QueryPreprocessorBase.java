@@ -6,7 +6,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import queryprocessor.preprocessor.exceptions.InvalidQueryException;
 import queryprocessor.preprocessor.exceptions.MissingArgumentException;
-import queryprocessor.preprocessor.validators.CallsValidator;
+import queryprocessor.preprocessor.validators.AggregatedValidator;
+import queryprocessor.preprocessor.validators.ValidatorFactory;
 import queryprocessor.querytree.*;
 import utils.Pair;
 
@@ -19,6 +20,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                     Keyword.ASSIGN,
                     Keyword.STATEMENT,
                     Keyword.PROCEDURE,
+                    Keyword.CONSTANT,
                     Keyword.VARIABLE)
     );
     private final static HashSet<Keyword> relationshipsKeywords = new HashSet<>(
@@ -47,7 +49,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
             List<String> identifiers = new ArrayList<>();
             if(group.contains(",")) {
                 if(!group.matches(Keyword.RESULT_TUPLE.getRegExpr()))
-                    throw new InvalidQueryException("Invalid Result Tuple. Expected e.g. <res1, res2, ...>", group);
+                    throw new InvalidQueryException("Invalid result tuple format. Expected e.g. <res1, res2, ...>", group);
 
                 var resTuple = group.replaceAll("<|>", "");
                 identifiers = Arrays.stream(resTuple.split(",")).map(String::trim).collect(Collectors.toList());
@@ -254,12 +256,11 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                         throw new InvalidQueryException("Invalid 'such that' clause", i, line);
 
                     for (var rel: relationships) {
-                        if(rel.getRelationshipType() == Keyword.CALLS)
-                        {
-                            var v = new CallsValidator(rel);
-                            if(!v.isValid())
-                                throw new InvalidQueryException(v.getErrorMsg(), i, rel.getLabel());
-                        }
+                        var validator = ValidatorFactory.createRelationshipValidator(rel);
+
+                        if(!validator.isValid())
+                            throw new InvalidQueryException(validator.getErrorMsg(), i, rel.getLabel());
+
                         tree.addRelationshipNode(rel);
                     }
 
@@ -279,7 +280,11 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                         throw new InvalidQueryException("Invalid 'with' clause", i, line);
 
                     for (var cond: conditions) {
-                        //dodac validatory
+                        var validator = ValidatorFactory.createConditionValidator(cond);
+
+                        if(!validator.isValid())
+                            throw new InvalidQueryException(validator.getErrorMsg(), i, line);
+
                         tree.addConditionNode(cond);
                     }
 

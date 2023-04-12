@@ -1,3 +1,6 @@
+import pkb.ast.WhileNode;
+import pkb.ast.abstraction.ASTNode;
+import pkb.ast.abstraction.TNode;
 import pkb.cfg.ControlFlowGraph;
 import frontend.lexer.Lexer;
 import frontend.lexer.Token;
@@ -6,6 +9,7 @@ import frontend.parser.Parser;
 import java.util.List;
 import java.util.Stack;
 import pkb.ProgramKnowledgeBase;
+import queryprocessor.evaluator.EvalEngine;
 import queryprocessor.evaluator.QueryEvaluator;
 import queryprocessor.evaluator.QueryEvaluatorBase;
 import queryprocessor.preprocessor.QueryPreprocessorBase;
@@ -41,7 +45,7 @@ public class Main {
 
         QueryTree qt = null;
         try {
-            qt = qp.parseQuery("procedure p; stmt s; while v; Select BOOLEAN such that Parent(p, s) with v.stmt#=12;");
+            qt = qp.parseQuery("while w; stmt s;Select <w, s> such that Parent(w, s);");
         } catch (InvalidQueryException | MissingArgumentException e) {
             System.err.println(e.explain());
             if(QoS.printStackTree)
@@ -51,11 +55,11 @@ public class Main {
         if(qt == null)
             return;
 
-        var node = qt.getResultsNode();
+        TNode node = qt.getResultsNode();
 
         if(QoS.verbose) {
             // trawersowanie drzewa QTNode / TNode / ASTNode
-            Stack<QTNode> nodeStack = new Stack<>();
+            Stack<TNode> nodeStack = new Stack<>();
             do {
                 if (node == null) {
                     if (!nodeStack.empty())
@@ -63,12 +67,27 @@ public class Main {
                     continue;
                 }
                 nodeStack.add(node.getRightSibling());
-                System.out.println(node.getLabel());
+                System.out.println(((QTNode)node).getLabel());
                 node = node.getFirstChild();
             } while (!nodeStack.empty() || node != null);
         }
 
-        QueryEvaluator evaluator = new QueryEvaluatorBase(pkb);
+        node = pkb.getAST();
+        Stack<TNode> nodeStack = new Stack<>();
+        do {
+            if (node == null) {
+                if (!nodeStack.empty())
+                    node = nodeStack.pop();
+                continue;
+            }
+            nodeStack.add(node.getRightSibling());
+            if(node instanceof WhileNode)
+                System.out.println(((WhileNode)node).getStatementId());
+            node = node.getFirstChild();
+        } while (!nodeStack.empty() || node != null);
+
+        var ee = new EvalEngine();
+        QueryEvaluator evaluator = new QueryEvaluatorBase(pkb, ee);
         var evaluationResult = evaluator.evaluate(qt);
 
         var qrp = new QueryResultProjector();
