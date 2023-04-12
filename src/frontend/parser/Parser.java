@@ -56,30 +56,30 @@ public class Parser {
   }
 
   private static void updateRelationsForAssignment(AssignmentNode assignmentNode) {
-    pkb.addModifies(assignmentNode.getStatementId(), assignmentNode.getName());
-    extractUses(assignmentNode.getStatementId(), assignmentNode.getExpression());
+    pkb.addModifies(assignmentNode, assignmentNode.getName());
+    extractUses(assignmentNode, assignmentNode.getExpression());
   }
 
   private static void updateRelationsForWhile(WhileNode whileNode) {
-    pkb.addUses(whileNode.getStatementId(), whileNode.condition.getName());
+    pkb.addUses(whileNode, whileNode.condition);
     for (StatementNode statement : whileNode.statements) {
-      Set<String> modifies = pkb.getModifies(statement.getStatementId());
-      Set<String> uses = pkb.getUses(statement.getStatementId());
+      Set<VariableNode> modifies = pkb.getModifies(statement);
+      Set<VariableNode> uses = pkb.getUses(statement);
       if (!modifies.isEmpty()) {
-        pkb.addModifies(whileNode.getStatementId(), modifies);
+        pkb.addModifies(whileNode, modifies);
       }
       if (!uses.isEmpty()) {
-        pkb.addUses(whileNode.getStatementId(), uses);
+        pkb.addUses(whileNode, uses);
       }
     }
   }
 
-  private static void extractUses(int id, ExpressionNode node) {
+  private static void extractUses(AssignmentNode assignmentNode, ExpressionNode node) {
     if (node instanceof VariableNode) {
-      pkb.addUses(id, ((VariableNode) node).getName());
+      pkb.addUses(assignmentNode, (VariableNode) node);
     } else if (node instanceof PlusNode) {
-      extractUses(id, ((PlusNode) node).getLeft());
-      extractUses(id, ((PlusNode) node).getRight());
+      extractUses(assignmentNode, ((PlusNode) node).getLeft());
+      extractUses(assignmentNode, ((PlusNode) node).getRight());
     }
   }
 }
