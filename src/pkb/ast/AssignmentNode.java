@@ -5,21 +5,21 @@ import pkb.ast.abstraction.StatementNode;
 
 public class AssignmentNode extends StatementNode {
 
-  private String name;
+  private VariableNode name;
 
   private ExpressionNode expression;
 
-  public AssignmentNode(int statementId, String name, ExpressionNode expression) {
+  public AssignmentNode(int statementId, VariableNode name, ExpressionNode expression) {
     super(statementId);
     this.setName(name);
     this.setExpression(expression);
   }
 
-  public String getName() {
+  public VariableNode getName() {
     return name;
   }
 
-  public void setName(String name) {
+  public void setName(VariableNode name) {
     this.name = name;
   }
 
