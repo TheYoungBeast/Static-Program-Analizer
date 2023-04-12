@@ -1,23 +1,34 @@
 package queryprocessor.preprocessor.validators;
 
+import queryprocessor.querytree.RelationshipRef;
+
 import java.util.List;
 
-public class AggregatedValidator implements QueryValidator {
+public class AggregatedValidator implements Validator
+{
+  //private final RelationshipRef rel;
+  private final List<Validator> validatorsChain;
+  private String lastErrorMsg;
 
-  private final List<QueryValidator> queryValidators;
-
-  public AggregatedValidator(List<QueryValidator> queryValidators) {
-    this.queryValidators = queryValidators;
+  public AggregatedValidator(List<Validator> validatorsChain) {
+    this.validatorsChain = validatorsChain;
   }
 
   @Override
-  public boolean isValid(String query) {
-    for (QueryValidator validator : queryValidators) {
-        if (!validator.isValid(query)) {
-            return false;
-        }
+  public boolean isValid()
+  {
+    for (var validator: validatorsChain) {
+      if (!validator.isValid()) {
+        lastErrorMsg = validator.getErrorMsg();
+        return false;
+      }
     }
 
     return true;
+  }
+
+  @Override
+  public String getErrorMsg() {
+    return lastErrorMsg;
   }
 }
