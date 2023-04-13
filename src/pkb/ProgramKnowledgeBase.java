@@ -1,10 +1,14 @@
 package pkb;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import pkb.ast.ConstantNode;
 import pkb.ast.ProcedureNode;
 import pkb.ast.VariableNode;
 import pkb.ast.abstraction.ASTNode;
@@ -16,6 +20,10 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
 
   private final Map<ASTNode, Set<VariableNode>> uses;
 
+  private final Set<VariableNode> varTable;
+
+  private final Set<ConstantNode> constTable;
+
   private ProcedureNode ast;
 
   private CFGNode cfg;
@@ -23,6 +31,8 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
   public ProgramKnowledgeBase() {
     modifies = new HashMap<>();
     uses = new HashMap<>();
+    varTable = new LinkedHashSet<>();
+    constTable = new LinkedHashSet<>();
   }
 
   public void addAST(ProcedureNode node) {
@@ -67,5 +77,12 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
   @Override
   public Set<VariableNode> getUses(ASTNode s) {
     return uses.getOrDefault(s, Collections.emptySet());
+  }
+
+  public void addVariableToVarTable(VariableNode v) {
+    varTable.add(v);
+  }
+  public void addConstantToConstTable(ConstantNode v) {
+    constTable.add(v);
   }
 }
