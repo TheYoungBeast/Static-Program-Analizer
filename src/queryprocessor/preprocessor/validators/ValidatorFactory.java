@@ -27,11 +27,28 @@ public class ValidatorFactory
             case CALLS:
                 validator = new AggregatedValidator(createCallsValidatorChain(ref));
                 break;
+            case USES:
+                validator = new AggregatedValidator(createUsesValidatiorChain(ref));
+                break;
+            case MODIFIES:
+                validator = new AggregatedValidator(createModifiesValidatorChain(ref));
+                break;
             default:
                 throw new UnsupportedOperationException();
         }
 
         return validator;
+    }
+
+    private static List<Validator> createModifiesValidatorChain(RelationshipRef ref) {
+        var chain = new ArrayList<Validator>();
+
+        final var args = 2;
+        chain.add(new ArgumentNumberValidator(ref, args)); // przenies informacje o ilosc arg itp do Statycznej tabeli
+
+        chain.add(new ArgTypeValidator(ref.getArg(1), Keyword.VARIABLE));
+
+        return chain;
     }
 
     private static List<Validator> createParentValidatorChain(RelationshipRef ref) {
@@ -55,10 +72,22 @@ public class ValidatorFactory
      {
          var chain = new ArrayList<Validator>();
 
-         chain.add(new ArgumentNumberValidator(ref, 2)); // przenies informacje o ilosc arg itp do Statycznej tabeli
+         final var args = 2;
+         chain.add(new ArgumentNumberValidator(ref, args)); // przenies informacje o ilosc arg itp do Statycznej tabeli
 
          for (int i = 0; i < ref.getArgSize(); i++ )
             chain.add(new IsProcedureValidator(ref.getArg(i)));
+
+         return chain;
+     }
+
+     private static List<Validator> createUsesValidatiorChain(RelationshipRef ref) {
+        var chain = new ArrayList<Validator>();
+
+         final var args = 2;
+         chain.add(new ArgumentNumberValidator(ref, args)); // przenies informacje o ilosc arg itp do Statycznej tabeli
+
+         chain.add(new ArgTypeValidator(ref.getArg(1), Keyword.VARIABLE));
 
          return chain;
      }

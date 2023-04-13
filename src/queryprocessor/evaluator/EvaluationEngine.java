@@ -22,4 +22,20 @@ public interface EvaluationEngine
      * @return List of pairs of nodes in transitive parent-child relationship
      */
     List<Pair<ASTNode, ASTNode>> evaluateParentTransitiveRel(List<ASTNode> parentCandidates, List<ASTNode> childCandidates);
+
+    /**
+     * Evaluation method for Uses relationship
+     * @param statements List of ASTNodes (candidates that uses)
+     * @param variables List of ASTNodes (candidates that are being used)
+     * @return List of pairs of nodes in Uses relationship
+     */
+    List<Pair<ASTNode, ASTNode>> evaluateUsesRel(List<ASTNode> statements, List<ASTNode> variables);
+
+    /**
+     * Evaluation method for Modifies relationship
+     * @param statements List of ASTNodes (candidates that modifies)
+     * @param variables List of ASTNodes (candidates that are being modified)
+     * @return List of pairs of nodes in Modifies relationship
+     */
+    List<Pair<ASTNode, ASTNode>> evaluateModifiesRel(List<ASTNode> statements, List<ASTNode> variables);
 }

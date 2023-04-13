@@ -43,7 +43,7 @@ public class Main {
 
         QueryTree qt = null;
         try {
-            qt = qp.parseQuery("variable v; select v;");
+            qt = qp.parseQuery("while w; variable v; select <w, v> such that Modifies(w, v);");
         } catch (InvalidQueryException | MissingArgumentException e) {
             System.err.println(e.explain());
             if(QoS.printStackTree)
@@ -70,14 +70,14 @@ public class Main {
             } while (!nodeStack.empty() || node != null);
         }
 
-        EvaluationEngine ee = new EvalEngine();
+        EvaluationEngine ee = new EvalEngine(pkb);
         QueryEvaluator evaluator = new QueryEvaluatorBase(pkb, ee);
         var evaluationResult = evaluator.evaluate(qt);
 
         var qrp = new QueryResultProjector();
         qrp.setEvaluationResult(evaluationResult);
 
-        System.out.println("\n");
+        System.out.println("\nTe wyniki to iloczyn kartezjański poprawnych odpo");
         System.out.println(qrp.format());
     }
 }
