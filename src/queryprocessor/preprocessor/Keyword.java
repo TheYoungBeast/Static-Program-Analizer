@@ -12,7 +12,6 @@ public enum Keyword {
   CONSTANT("Constant", "constant"),
   PLACEHOLDER("Placeholder", "_"),
   STATEMENT("Statement","stmt"),
-  CONSTANT("Constant", "constant"),
   ASSIGN("Assign","assign"),
   WHILE("While","while"),
   PROCEDURE("Procedure","procedure"),
