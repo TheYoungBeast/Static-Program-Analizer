@@ -3,18 +3,19 @@ package frontend.parser;
 import static frontend.parser.Parser.check;
 import static frontend.parser.Parser.match;
 
-import pkb.ast.ConstantNode;
-import pkb.ast.VariableNode;
-import pkb.ast.abstraction.ExpressionNode;
 import frontend.lexer.TokenType;
+import pkb.ast.TimesNode;
+import pkb.ast.abstraction.ExpressionNode;
 
 class ParseTerm {
 
   static ExpressionNode parseTerm() {
-    if (check(TokenType.CONSTANT)) {
-      return new ConstantNode(Integer.parseInt(match(TokenType.CONSTANT).getValue()));
-    } else {
-      return new VariableNode(match(TokenType.NAME).getValue());
+    ExpressionNode left = ParseFactor.parseFactor();
+    while (check(TokenType.TIMES)) {
+      match(TokenType.TIMES);
+      ExpressionNode right = ParseFactor.parseFactor();
+      left = new TimesNode(left, right);
     }
+    return left;
   }
 }

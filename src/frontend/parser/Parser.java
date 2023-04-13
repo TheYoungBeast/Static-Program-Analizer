@@ -4,7 +4,9 @@ import static frontend.parser.ParseProcedure.parseProcedure;
 
 import pkb.ast.AssignmentNode;
 import pkb.ast.ConstantNode;
+import pkb.ast.MinusNode;
 import pkb.ast.PlusNode;
+import pkb.ast.TimesNode;
 import pkb.ast.VariableNode;
 import pkb.ast.WhileNode;
 import pkb.ast.abstraction.ExpressionNode;
@@ -86,6 +88,12 @@ public class Parser {
     } else if (node instanceof PlusNode) {
       extractUses(assignmentNode, ((PlusNode) node).getLeft());
       extractUses(assignmentNode, ((PlusNode) node).getRight());
+    } else if (node instanceof MinusNode) {
+      extractUses(assignmentNode, ((MinusNode) node).getLeft());
+      extractUses(assignmentNode, ((MinusNode) node).getRight());
+    } else if (node instanceof TimesNode) {
+      extractUses(assignmentNode, ((TimesNode) node).getLeft());
+      extractUses(assignmentNode, ((TimesNode) node).getRight());
     }
   }
 }

@@ -1,7 +1,7 @@
 package frontend.parser;
 
 import static frontend.parser.ParseStatements.parseStatements;
-import static frontend.parser.ParseTerm.parseTerm;
+import static frontend.parser.ParseFactor.parseFactor;
 import static frontend.parser.Parser.match;
 
 import pkb.ast.VariableNode;
@@ -14,7 +14,7 @@ class ParseWhile {
 
   static WhileNode parseWhile(int id) {
     match(TokenType.WHILE);
-    VariableNode condition = (VariableNode) parseTerm();
+    VariableNode condition = (VariableNode) parseFactor();
     match(TokenType.LBRACE);
     List<StatementNode> statements = parseStatements();
     match(TokenType.RBRACE);
