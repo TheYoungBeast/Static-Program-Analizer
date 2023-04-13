@@ -6,6 +6,8 @@ import frontend.parser.Parser;
 import java.util.List;
 import java.util.Stack;
 import pkb.ProgramKnowledgeBase;
+import queryprocessor.evaluator.EvalEngine;
+import queryprocessor.evaluator.EvaluationEngine;
 import queryprocessor.evaluator.QueryEvaluator;
 import queryprocessor.evaluator.QueryEvaluatorBase;
 import queryprocessor.preprocessor.QueryPreprocessorBase;
@@ -41,7 +43,7 @@ public class Main {
 
         QueryTree qt = null;
         try {
-            qt = qp.parseQuery("constant v; select v;");
+            qt = qp.parseQuery("variable v; select v;");
         } catch (InvalidQueryException | MissingArgumentException e) {
             System.err.println(e.explain());
             if(QoS.printStackTree)
@@ -68,7 +70,8 @@ public class Main {
             } while (!nodeStack.empty() || node != null);
         }
 
-        QueryEvaluator evaluator = new QueryEvaluatorBase(pkb);
+        EvaluationEngine ee = new EvalEngine();
+        QueryEvaluator evaluator = new QueryEvaluatorBase(pkb, ee);
         var evaluationResult = evaluator.evaluate(qt);
 
         var qrp = new QueryResultProjector();

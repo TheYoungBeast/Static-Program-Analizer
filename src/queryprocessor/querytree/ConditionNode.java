@@ -37,4 +37,7 @@ public class ConditionNode extends QTNode
     public AttrRef getAttrRef() {
         return attrRef;
     }
+    public AttrValue getAttrValue() {
+        return attrValue;
+    }
 }

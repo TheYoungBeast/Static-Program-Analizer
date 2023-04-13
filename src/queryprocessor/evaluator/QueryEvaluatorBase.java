@@ -11,6 +11,7 @@ import queryprocessor.querytree.ResNode;
 import utils.Pair;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -18,24 +19,29 @@ public class QueryEvaluatorBase implements QueryEvaluator
 {
     public final ProgramKnowledgeBaseAPI pkb;
 
-    public QueryEvaluatorBase(ProgramKnowledgeBaseAPI pkb) {
+    public final HashMap<Keyword, BiFunction<
+            List<ASTNode>,                  // arg1
+            List<ASTNode>,                  // arg2
+            List<Pair<ASTNode, ASTNode>>>    // result
+            > evalAlgorithms = new HashMap<>();
+
+    public QueryEvaluatorBase(ProgramKnowledgeBaseAPI pkb, EvaluationEngine engine) {
         this.pkb = pkb;
+
+        evalAlgorithms.put(Keyword.PARENT, engine::evaluateParentRel);
+        evalAlgorithms.put(Keyword.T_PARENT, engine::evaluateParentTransitiveRel);
     }
 
-    // METODA DO POPRAWY
-    // UPROSCIC PROCES... DUZO ZAGNIEZDZONYCH, SKOMPLIKOWANYCH TYPOW
-    // Ewaluuje zapytania zlozone z setow a takze relacji oraz warunkow: 'procedure p; while v; Select p, v such that Parent(p, v) with p.procName = "Rectangle"'
     @Override
     public EvaluationResult evaluate(QueryTree queryTree)
     {
         var resultNodes = new ArrayList<ResNode>();
         var node = queryTree.getResultsNode().getFirstChild();
 
-        /**
+        /*
          * LinkedHashMap
          * in addition to the uniqueness of elements, the order of elements in which they were added is also guaranteed
          */
-
         var resultLUT = new LinkedHashMap<Synonym<?>, Set<ASTNode>>();
         var resultExtractors = new LinkedHashMap<Synonym<?>, Function<ASTNode, String>>();
 
@@ -90,49 +96,28 @@ public class QueryEvaluatorBase implements QueryEvaluator
             }
 
             for (var relRef: relationships) {
-                if(relRef.getRelationshipType() == Keyword.PARENT) {
-                    var argParent = relRef.getArg(0);
-                    var argChild = relRef.getArg(1);
-
-                    resultLUT.computeIfAbsent(argParent.getSynonym(), l -> getMatchingNodes(pkb.getAST(), argParent.getSynonym()));
-                    resultLUT.computeIfAbsent(argChild.getSynonym(), l -> getMatchingNodes(pkb.getAST(), argChild.getSynonym()));
-
-                    var results = new ArrayList<>(getParentChildPairs(
-                            new ArrayList<>(resultLUT.get(argParent.getSynonym())),
-                            new ArrayList<>(resultLUT.get(argChild.getSynonym()))
-                    ));
-
-                    var parents = results.stream().map(Pair::getFirst).collect(Collectors.toList());
-                    var children = results.stream().map(Pair::getSecond).collect(Collectors.toList());
-
-                    resultLUT.put(argParent.getSynonym(), new HashSet<>(parents));
-                    resultLUT.put(argChild.getSynonym(), new HashSet<>(children));
+                for (int i = 0; i < relRef.getArgSize(); i++) {
+                    var arg = relRef.getArg(i);
+                    resultLUT.computeIfAbsent(arg.getSynonym(), l -> getMatchingNodes(pkb.getAST(), arg.getSynonym()));
                 }
+
+                var arg1 = relRef.getArg(0);
+                var arg2 = relRef.getArg(1);
+
+                var results = new ArrayList<>(evalAlgorithms.get(relRef.getRelationshipType()).apply(
+                        new ArrayList<>(resultLUT.get(arg1.getSynonym())),
+                        new ArrayList<>(resultLUT.get(arg2.getSynonym()))
+                ));
+
+                var results1 = results.stream().map(Pair::getFirst).collect(Collectors.toList());
+                var results2 = results.stream().map(Pair::getSecond).collect(Collectors.toList());
+
+                resultLUT.put(arg1.getSynonym(), new HashSet<>(results1));
+                resultLUT.put(arg2.getSynonym(), new HashSet<>(results2));
             }
         }
 
         return new EvaluationResult(resultLUT, resultExtractors);
-    }
-
-    // TEZ DO POPRAWY - POMYŚLEĆ NAD LEPSZĄ METODĄ
-    private List<Pair<ASTNode, ASTNode>> getParentChildPairs(List<ASTNode> parentCandidates, List<ASTNode> childCandidates)
-    {
-        var pairs = new ArrayList<Pair<ASTNode, ASTNode>>();
-
-        for (var cCandidate: childCandidates) {
-            if(cCandidate.getParent() == null)
-                continue;
-
-            var parent = cCandidate.getParent();
-            for (var pCandidate: parentCandidates) {
-                if(parent == pCandidate) {
-                    pairs.add(new Pair<>(pCandidate, cCandidate));
-                    break;
-                }
-            }
-        }
-
-        return pairs;
     }
 
     private Set<ASTNode> getMatchingNodes(ASTNode head, Synonym<?> s) {
