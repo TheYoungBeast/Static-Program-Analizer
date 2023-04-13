@@ -1,7 +1,7 @@
 procedure Rectangle {
   while c {
-    t = d + 3 + a + c;
-    c = c + 20;
+    t = d + 3 * a + c;
+    c = t * (a - d) + k * b;
     while e {
         f = 8;
         while f {

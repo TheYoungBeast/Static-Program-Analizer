@@ -3,7 +3,10 @@ package frontend.parser;
 import static frontend.parser.ParseProcedure.parseProcedure;
 
 import pkb.ast.AssignmentNode;
+import pkb.ast.ConstantNode;
+import pkb.ast.MinusNode;
 import pkb.ast.PlusNode;
+import pkb.ast.TimesNode;
 import pkb.ast.VariableNode;
 import pkb.ast.WhileNode;
 import pkb.ast.abstraction.ExpressionNode;
@@ -57,11 +60,13 @@ public class Parser {
 
   private static void updateRelationsForAssignment(AssignmentNode assignmentNode) {
     pkb.addModifies(assignmentNode, assignmentNode.getName());
+    pkb.addVariableToVarTable(assignmentNode.getName());
     extractUses(assignmentNode, assignmentNode.getExpression());
   }
 
   private static void updateRelationsForWhile(WhileNode whileNode) {
     pkb.addUses(whileNode, whileNode.condition);
+    pkb.addVariableToVarTable(whileNode.condition);
     for (StatementNode statement : whileNode.statements) {
       Set<VariableNode> modifies = pkb.getModifies(statement);
       Set<VariableNode> uses = pkb.getUses(statement);
@@ -76,10 +81,19 @@ public class Parser {
 
   private static void extractUses(AssignmentNode assignmentNode, ExpressionNode node) {
     if (node instanceof VariableNode) {
+      pkb.addVariableToVarTable((VariableNode) node);
       pkb.addUses(assignmentNode, (VariableNode) node);
+    } else if (node instanceof ConstantNode) {
+      pkb.addConstantToConstTable((ConstantNode) node);
     } else if (node instanceof PlusNode) {
       extractUses(assignmentNode, ((PlusNode) node).getLeft());
       extractUses(assignmentNode, ((PlusNode) node).getRight());
+    } else if (node instanceof MinusNode) {
+      extractUses(assignmentNode, ((MinusNode) node).getLeft());
+      extractUses(assignmentNode, ((MinusNode) node).getRight());
+    } else if (node instanceof TimesNode) {
+      extractUses(assignmentNode, ((TimesNode) node).getLeft());
+      extractUses(assignmentNode, ((TimesNode) node).getRight());
     }
   }
 }

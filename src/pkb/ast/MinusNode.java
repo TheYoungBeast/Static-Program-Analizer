@@ -2,13 +2,13 @@ package pkb.ast;
 
 import pkb.ast.abstraction.ExpressionNode;
 
-public class PlusNode extends ExpressionNode {
+public class MinusNode extends ExpressionNode {
 
   private ExpressionNode left;
 
   private ExpressionNode right;
 
-  public PlusNode(ExpressionNode left, ExpressionNode right) {
+  public MinusNode(ExpressionNode left, ExpressionNode right) {
     this.setLeft(left);
     this.setRight(right);
 

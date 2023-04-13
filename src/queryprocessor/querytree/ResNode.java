@@ -1,5 +1,6 @@
 package queryprocessor.querytree;
 
+import pkb.ast.ConstantNode;
 import pkb.ast.ProcedureNode;
 import pkb.ast.VariableNode;
 import pkb.ast.abstraction.ASTNode;
@@ -27,6 +28,8 @@ public class ResNode extends QTNode {
         return String.valueOf(((ProcedureNode) node).getName());
       else if(node instanceof VariableNode)
         return String.valueOf(((VariableNode) node).getName());
+      else if(node instanceof ConstantNode)
+        return String.valueOf(((ConstantNode) node).getValue());
       else
         return String.valueOf(((StatementNode) node).getStatementId());
     };
