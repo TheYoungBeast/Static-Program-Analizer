@@ -13,6 +13,12 @@ public class AssignmentNode extends StatementNode {
     super(statementId);
     this.setName(name);
     this.setExpression(expression);
+
+    // MAGIA HERE
+    name.setParent(this);
+    expression.setParent(this);
+    this.setFirstChild(name);
+    name.setRightSibling(expression);
   }
 
   public VariableNode getName() {

@@ -41,7 +41,7 @@ public class Main {
 
         QueryTree qt = null;
         try {
-            qt = qp.parseQuery("procedure p; stmt s; while v; Select BOOLEAN such that Parent(p, s) with v.stmt#=12;");
+            qt = qp.parseQuery("constant v; select v;");
         } catch (InvalidQueryException | MissingArgumentException e) {
             System.err.println(e.explain());
             if(QoS.printStackTree)

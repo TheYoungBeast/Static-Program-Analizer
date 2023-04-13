@@ -19,6 +19,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                     Keyword.ASSIGN,
                     Keyword.STATEMENT,
                     Keyword.PROCEDURE,
+                    Keyword.CONSTANT,
                     Keyword.VARIABLE)
     );
     private final static HashSet<Keyword> relationshipsKeywords = new HashSet<>(

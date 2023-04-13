@@ -5,7 +5,7 @@ import pkb.ast.abstraction.ExpressionNode;
 
 public class ConstantNode extends ExpressionNode {
 
-  final int value;
+  private final int value;
 
   public ConstantNode(int value) {
     this.value = value;
@@ -21,6 +21,10 @@ public class ConstantNode extends ExpressionNode {
     }
     ConstantNode that = (ConstantNode) o;
     return value == that.value;
+  }
+
+  public int getValue() {
+    return value;
   }
 
   @Override

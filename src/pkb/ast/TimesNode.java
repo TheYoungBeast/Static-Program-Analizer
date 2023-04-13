@@ -11,6 +11,11 @@ public class TimesNode extends ExpressionNode {
   public TimesNode(ExpressionNode left, ExpressionNode right) {
     this.setLeft(left);
     this.setRight(right);
+
+    left.setParent(this);
+    this.setFirstChild(left);
+    left.setRightSibling(right);
+    right.setParent(this);
   }
 
   public ExpressionNode getLeft() {
