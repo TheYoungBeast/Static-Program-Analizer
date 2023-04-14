@@ -4,7 +4,6 @@ import queryprocessor.preprocessor.Keyword;
 import queryprocessor.querytree.ConditionNode;
 import queryprocessor.querytree.RelationshipRef;
 
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 
