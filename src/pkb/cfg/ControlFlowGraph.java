@@ -1,11 +1,12 @@
 package pkb.cfg;
 
-import pkb.ast.WhileNode;
-import pkb.ast.abstraction.StatementNode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import pkb.ProgramKnowledgeBase;
+import pkb.ast.ProcedureNode;
+import pkb.ast.WhileNode;
+import pkb.ast.abstraction.StatementNode;
 
 public class ControlFlowGraph {
 
@@ -36,8 +37,7 @@ public class ControlFlowGraph {
 
       if (index >= astNodes.size() - 1) {
         CFGNode last = getOrCreateCfgNode(astNodes.get(index).getStatementId());
-        if (astNodes.get(index).getParent() != null
-                && astNodes instanceof StatementNode) {
+        if (!(astNodes instanceof ProcedureNode)) {
           last.addSuccessor(getOrCreateCfgNode(((StatementNode) astNodes.get(index).getParent()).getStatementId()));
         }
         return;
@@ -50,6 +50,4 @@ public class ControlFlowGraph {
       index++;
     }
   }
-
-
 }

@@ -4,11 +4,13 @@ import static frontend.parser.ParseProcedure.parseProcedure;
 
 import pkb.ast.AssignmentNode;
 import pkb.ast.ConstantNode;
+import pkb.ast.IfNode;
 import pkb.ast.MinusNode;
 import pkb.ast.PlusNode;
 import pkb.ast.TimesNode;
 import pkb.ast.VariableNode;
 import pkb.ast.WhileNode;
+import pkb.ast.abstraction.ContainerNode;
 import pkb.ast.abstraction.ExpressionNode;
 import pkb.ast.abstraction.StatementNode;
 import frontend.lexer.Token;
@@ -55,6 +57,8 @@ public class Parser {
       updateRelationsForAssignment((AssignmentNode) node);
     } else if (node instanceof WhileNode) {
       updateRelationsForWhile((WhileNode) node);
+    } else if (node instanceof IfNode) {
+      updateRelationsForIf((IfNode) node);
     }
   }
 
@@ -67,17 +71,29 @@ public class Parser {
   private static void updateRelationsForWhile(WhileNode whileNode) {
     pkb.addUses(whileNode, whileNode.condition);
     pkb.addVariableToVarTable(whileNode.condition);
-    for (StatementNode statement : whileNode.statements) {
+    updateRelationsFromNestedStatements(whileNode, whileNode.statements);
+  }
+
+  private static void updateRelationsForIf(IfNode ifNode) {
+    pkb.addUses(ifNode, ifNode.condition);
+    pkb.addVariableToVarTable(ifNode.condition);
+    updateRelationsFromNestedStatements(ifNode, ifNode.statements);
+    updateRelationsFromNestedStatements(ifNode, ifNode.elseStatements);
+  }
+
+  private static void updateRelationsFromNestedStatements(ContainerNode node, List<StatementNode> statements) {
+    for (StatementNode statement : statements) {
       Set<VariableNode> modifies = pkb.getModifies(statement);
       Set<VariableNode> uses = pkb.getUses(statement);
       if (!modifies.isEmpty()) {
-        pkb.addModifies(whileNode, modifies);
+        pkb.addModifies(node, modifies);
       }
       if (!uses.isEmpty()) {
-        pkb.addUses(whileNode, uses);
+        pkb.addUses(node, uses);
       }
     }
   }
+
 
   private static void extractUses(AssignmentNode assignmentNode, ExpressionNode node) {
     if (node instanceof VariableNode) {

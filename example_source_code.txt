@@ -3,8 +3,10 @@ procedure Rectangle {
     t = d + 3 * a + c;
     c = t * (a - d) + k * b;
     while e {
-        f = 8;
-        while f {
-          o = 8; }}}
+        if t then {
+          d = t + 2; }
+        else {
+          a = t * a + d + k * b; }
+        }}
   d = t;
   d = t;}

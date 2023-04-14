@@ -3,6 +3,9 @@ package frontend.lexer;
 public enum TokenType {
   PROCEDURE("procedure"),
   WHILE("while"),
+  IF("if"),
+  THEN("then"),
+  ELSE("else"),
   LBRACE("\\{"),
   RBRACE("\\}"),
   LPAREN("\\("),
