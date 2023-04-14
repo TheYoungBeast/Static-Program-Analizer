@@ -43,7 +43,7 @@ public class Main {
 
         QueryTree qt = null;
         try {
-            qt = qp.parseQuery("while w; variable v; select <w, v> such that Modifies(w, v);");
+            qt = qp.parseQuery("procedure p;while w; variable v; select <w, v> such that Modifies(w, v) and Parent(p, w);");
         } catch (InvalidQueryException | MissingArgumentException e) {
             System.err.println(e.explain());
             if(QoS.printStackTree)
@@ -77,7 +77,7 @@ public class Main {
         var qrp = new QueryResultProjector();
         qrp.setEvaluationResult(evaluationResult);
 
-        System.out.println("\nTe wyniki to iloczyn kartezjański poprawnych odpo");
+        System.out.println("\nTe wyniki to iloczyn kartezjański poprawnych cząstkowych odpowiedzi, cząstkowe są dobre, iloczyn jest nieprawidlowy");
         System.out.println(qrp.format());
     }
 }
