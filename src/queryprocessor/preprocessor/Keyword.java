@@ -8,7 +8,7 @@ public enum Keyword {
   PATTERN("Pattern","pattern"),
   BOOLEAN("Boolean", "BOOLEAN"),
   IF("If", "if"),
-  AND("And","and"),
+  AND("And","\\s+and\\s+"),
   CONSTANT("Constant", "constant"),
   PLACEHOLDER("Placeholder", "_"),
   STATEMENT("Statement","stmt"),
