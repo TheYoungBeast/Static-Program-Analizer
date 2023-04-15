@@ -13,5 +13,21 @@ public abstract class ContainerNode extends StatementNode {
     super(statementId);
     this.condition = condition;
     this.statements = statements;
+
+    this.setFirstChild(condition);
+    condition.setRightSibling(statements.get(0));
+    setParentAndSibling(statements);
+  }
+
+  protected void setParentAndSibling(List<StatementNode> statements) {
+    ASTNode last = null;
+    for (var s: statements) {
+      s.setParent(this);
+
+      if(last!= null)
+        last.setRightSibling(s);
+
+      last = s;
+    }
   }
 }

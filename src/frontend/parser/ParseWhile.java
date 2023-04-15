@@ -18,10 +18,6 @@ class ParseWhile {
     match(TokenType.LBRACE);
     List<StatementNode> statements = parseStatements();
     match(TokenType.RBRACE);
-    WhileNode whileNode = new WhileNode(id, condition, statements);
-    for (StatementNode statement : whileNode.statements) {
-      statement.setParent(whileNode);
-    }
-    return whileNode;
+    return new WhileNode(id, condition, statements);
   }
 }
