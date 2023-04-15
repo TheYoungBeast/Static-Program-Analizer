@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import queryprocessor.preprocessor.exceptions.InvalidQueryException;
 import queryprocessor.preprocessor.exceptions.MissingArgumentException;
-import queryprocessor.preprocessor.validators.AggregatedValidator;
 import queryprocessor.preprocessor.validators.ValidatorFactory;
 import queryprocessor.querytree.*;
 import utils.Pair;
@@ -19,6 +18,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                     Keyword.WHILE,
                     Keyword.ASSIGN,
                     Keyword.STATEMENT,
+                    Keyword.IF,
                     Keyword.PROCEDURE,
                     Keyword.CONSTANT,
                     Keyword.VARIABLE)
@@ -51,7 +51,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                 if(!group.matches(Keyword.RESULT_TUPLE.getRegExpr()))
                     throw new InvalidQueryException("Invalid result tuple format. Expected e.g. <res1, res2, ...>", group);
 
-                var resTuple = group.replaceAll("<|>", "");
+                var resTuple = group.replaceAll("[<>]", "");
                 identifiers = Arrays.stream(resTuple.split(",")).map(String::trim).collect(Collectors.toList());
             }
             else {
@@ -84,7 +84,8 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         {
             var relationships = new ArrayList<RelationshipRef>();
 
-            MatchResult lastResult = null;
+            var start = query.length();
+            var end = query.length();
             for (Keyword rel: relationshipsKeywords) {
                 var relMatcher = Pattern.compile(rel.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
                 var matchResults = relMatcher.results().collect(Collectors.toList());
@@ -94,29 +95,19 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
                 for (var match: matchResults)
                 {
-                    if(lastResult != null)
-                        // contains at least 1 relations ships
-                        // this means that Concatenator has to be present between relationships
-                    {
-                        var start = lastResult.end();
-                        var end = match.start();
+                    if(match.start() < start)
+                        start = match.start();
 
-                        if(start > end) {
-                            var t = end;
-                            end = start;
-                            start = t;
-                        }
-
-                        if(!containsConcatenator(query, start, end)) // e.g. [...] Parent(s1, s2) AND Uses(s1, "x")
-                            throw new InvalidQueryException("Missing concatenator in between relationships", query);
-                    }
+                    if(match.end() > end)
+                        end = match.end();
 
                     var args = extractArguments(query, rel, match.start(), match.end());
                     relationships.add(new RelationshipRef(rel, args));
-
-                    lastResult = match;
                 }
             }
+
+            if(!relationships.isEmpty() && (relationships.size()-1) != getConcatenatorCount(query, start, end))
+                throw new InvalidQueryException("Missing 'and' concatenator in between relationships", query);
 
             return relationships;
         }
@@ -143,10 +134,10 @@ public class QueryPreprocessorBase implements QueryPreprocessor
            return arguments;
         }
 
-        public boolean containsConcatenator(String line, int start, int end)
+        public long getConcatenatorCount(String line, int start, int end)
         {
             var matcher = Pattern.compile(Keyword.AND.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(line).region(start, end);
-            return matcher.find();
+            return matcher.results().count();
         }
     }
 

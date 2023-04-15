@@ -10,23 +10,20 @@ public class QTree implements QueryTree
     public QTree() {
     }
 
-    public QTNode createResultsNode() {
+    public void createResultsNode() {
         if(resultsNode == null)
             resultsNode = new ResultNode();
 
-        return resultsNode;
     }
-    public QTNode createSuchThatNode() {
+    public void createSuchThatNode() {
         if(suchThatNode == null)
             suchThatNode = new SuchThatNode();
 
-        return suchThatNode;
     }
-    public QTNode createWithNode() {
+    public void createWithNode() {
         if(withNode == null)
             withNode = new WithNode();
 
-        return withNode;
     }
 
     public void addResNode(ResNode node) {
@@ -48,10 +45,6 @@ public class QTree implements QueryTree
             this.createWithNode();
 
         this.setNode(node, withNode);
-    }
-
-    public void setWithNode(WithNode withNode) {
-        this.withNode = withNode;
     }
 
     private void setNode(QTNode node, QTNode parent)

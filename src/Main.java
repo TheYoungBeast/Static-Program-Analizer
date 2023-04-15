@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Stack;
 import pkb.ProgramKnowledgeBase;
 import queryprocessor.evaluator.EvalEngine;
-import queryprocessor.evaluator.EvaluationEngine;
-import queryprocessor.evaluator.QueryEvaluator;
+import queryprocessor.evaluator.abstraction.EvaluationEngine;
+import queryprocessor.evaluator.abstraction.QueryEvaluator;
 import queryprocessor.evaluator.QueryEvaluatorBase;
 import queryprocessor.preprocessor.QueryPreprocessorBase;
 import queryprocessor.preprocessor.exceptions.InvalidQueryException;
@@ -23,8 +23,8 @@ import queryresultprojector.QueryResultProjector;
  */
 
 class QoS {
-    public static boolean verbose = false;
-    public static boolean printStackTree = true;
+    public static final boolean verbose = false;
+    public static final boolean printStackTree = true;
 }
 
 public class Main {
@@ -43,7 +43,7 @@ public class Main {
 
         QueryTree qt = null;
         try {
-            qt = qp.parseQuery("variable v; select v;");
+            qt = qp.parseQuery("procedure p;while w; assign a; stmt s; variable v; constant c; if i; select <p, w, v, i, s, a, c> such that Parent(w, i) with c.value=2;");
         } catch (InvalidQueryException | MissingArgumentException e) {
             System.err.println(e.explain());
             if(QoS.printStackTree)
@@ -70,14 +70,13 @@ public class Main {
             } while (!nodeStack.empty() || node != null);
         }
 
-        EvaluationEngine ee = new EvalEngine();
+        EvaluationEngine ee = new EvalEngine(pkb);
         QueryEvaluator evaluator = new QueryEvaluatorBase(pkb, ee);
         var evaluationResult = evaluator.evaluate(qt);
 
         var qrp = new QueryResultProjector();
         qrp.setEvaluationResult(evaluationResult);
 
-        System.out.println("\n");
         System.out.println(qrp.format());
     }
 }

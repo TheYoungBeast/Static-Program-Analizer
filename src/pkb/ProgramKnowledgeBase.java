@@ -1,11 +1,8 @@
 package pkb;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import pkb.ast.ConstantNode;
@@ -77,6 +74,16 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
   @Override
   public Set<VariableNode> getUses(ASTNode s) {
     return uses.getOrDefault(s, Collections.emptySet());
+  }
+
+  @Override
+  public Set<VariableNode> getVarTable() {
+    return varTable;
+  }
+
+  @Override
+  public Set<ConstantNode> getConstTable() {
+    return constTable;
   }
 
   public void addVariableToVarTable(VariableNode v) {

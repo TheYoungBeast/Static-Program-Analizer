@@ -8,7 +8,7 @@ import java.util.List;
 
 public class IsContainerStatement implements Validator
 {
-    private IsAnyValidator isAnyValidator;
+    private final IsAnyValidator isAnyValidator;
 
     public IsContainerStatement(ArgNode arg) {
         var containerType = "Container-type Statement";

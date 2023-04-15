@@ -5,7 +5,7 @@ public class AttrValue extends QTNode
     public enum ValueType {
         NUMBER,
         STRING
-    };
+    }
 
     private final ValueType valueType;
     private final String value;
@@ -13,7 +13,7 @@ public class AttrValue extends QTNode
     public AttrValue(String value) {
         super("AttrValue");
         this.value = value;
-        ValueType t = null;
+        ValueType t;
         try {
             Long.parseLong(value);
             t = ValueType.NUMBER;
