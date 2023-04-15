@@ -40,6 +40,10 @@ public class QueryEvaluatorBase implements QueryEvaluator
     public EvaluationResult evaluate(QueryTree queryTree)
     {
         var resultNodes = new ArrayList<ResNode>();
+
+        if(queryTree == null)
+            return null;
+
         var node = queryTree.getResultsNode().getFirstChild();
 
         // LinkedHashMap

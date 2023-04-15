@@ -18,6 +18,10 @@ public class QueryResultProjector
     }
 
     public String format() {
+        if(evaluationResult == null) {
+            return "None";
+        }
+
         var builder = new StringBuilder();
         var extractorMap = evaluationResult.getExtractors();
         var synonyms = new ArrayList<>(extractorMap.keySet());
@@ -139,7 +143,7 @@ public class QueryResultProjector
 
         results = filtered2;
 
-        builder.append(String.format("%d result(s): \n", results.size()));
+        //builder.append(String.format("%d result(s): \n", results.size()));
 
         var extractors = new ArrayList<>(extractorMap.values());
         for(int p = 0; p < results.size(); p++)
@@ -154,11 +158,11 @@ public class QueryResultProjector
                 builder.append(extractor.apply(node));
 
                 if(i < list.size()-1)
-                    builder.append(", ");
+                    builder.append(" ");
             }
 
             if(p < results.size()-1)
-                builder.append(System.getProperty("line.separator"));
+                builder.append(",");
         }
 
         return builder.toString();

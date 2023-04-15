@@ -195,6 +195,8 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
     public QueryTree parseQuery(String[] queryLines) throws InvalidQueryException, MissingArgumentException
     {
+        declaredSynonyms.clear();
+
         if (queryLines.length == 0)
             throw new InvalidQueryException("The query not properly ended. "+querySeparator+" is missing", 1);
 

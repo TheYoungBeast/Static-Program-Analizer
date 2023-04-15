@@ -3,8 +3,10 @@ import frontend.lexer.Lexer;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Stack;
+import java.util.Scanner;
+
 import pkb.ProgramKnowledgeBase;
 import queryprocessor.evaluator.EvalEngine;
 import queryprocessor.evaluator.abstraction.EvaluationEngine;
@@ -13,7 +15,6 @@ import queryprocessor.evaluator.QueryEvaluatorBase;
 import queryprocessor.preprocessor.QueryPreprocessorBase;
 import queryprocessor.preprocessor.exceptions.InvalidQueryException;
 import queryprocessor.preprocessor.exceptions.MissingArgumentException;
-import queryprocessor.querytree.QTNode;
 import queryprocessor.querytree.QueryTree;
 import queryresultprojector.QueryResultProjector;
 
@@ -29,10 +30,14 @@ class QoS {
 
 public class Main {
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) throws Exception {
+        var sourceFile = Arrays.stream(args).findFirst().orElse(null);
+
+        if(sourceFile == null)
+            throw new Exception("No source file provided");
+
         Lexer lexer = new Lexer();
-        List<Token> tokens = lexer.tokenize("example_source_code.txt");
+        List<Token> tokens = lexer.tokenize(sourceFile);
         ProgramKnowledgeBase pkb = new ProgramKnowledgeBase();
         Parser.parse(tokens, pkb);
         ControlFlowGraph.createCfg(pkb);
@@ -42,41 +47,33 @@ public class Main {
         var qp = new QueryPreprocessorBase();
 
         QueryTree qt = null;
-        try {
-            qt = qp.parseQuery("procedure p;while w; assign a; stmt s; variable v; constant c; if i; select <p, w, v, i, s, a, c> such that Parent(w, i) with c.value=2;");
-        } catch (InvalidQueryException | MissingArgumentException e) {
-            System.err.println(e.explain());
-            if(QoS.printStackTree)
-                e.printStackTrace();
+
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Ready");
+
+        while(true) {
+            var queryString = new String[2];
+
+            queryString[0] = String.valueOf(scanner.nextLine()); // deklaracje
+            queryString[1] = String.valueOf(scanner.nextLine()); // zapytanie
+
+            try {
+                qt = qp.parseQuery(queryString[0] + queryString[1]);
+            } catch (InvalidQueryException | MissingArgumentException e) {
+                System.err.println(e.explain());
+                if (QoS.printStackTree)
+                    e.printStackTrace();
+            }
+
+            EvaluationEngine ee = new EvalEngine(pkb);
+            QueryEvaluator evaluator = new QueryEvaluatorBase(pkb, ee);
+            var evaluationResult = evaluator.evaluate(qt);
+
+            var qrp = new QueryResultProjector();
+            qrp.setEvaluationResult(evaluationResult);
+
+            System.out.println(qrp.format());
         }
-
-        if(qt == null)
-            return;
-
-        var node = qt.getResultsNode();
-
-        if(QoS.verbose) {
-            // trawersowanie drzewa QTNode / TNode / ASTNode
-            Stack<QTNode> nodeStack = new Stack<>();
-            do {
-                if (node == null) {
-                    if (!nodeStack.empty())
-                        node = nodeStack.pop();
-                    continue;
-                }
-                nodeStack.add(node.getRightSibling());
-                System.out.println(node.getLabel());
-                node = node.getFirstChild();
-            } while (!nodeStack.empty() || node != null);
-        }
-
-        EvaluationEngine ee = new EvalEngine(pkb);
-        QueryEvaluator evaluator = new QueryEvaluatorBase(pkb, ee);
-        var evaluationResult = evaluator.evaluate(qt);
-
-        var qrp = new QueryResultProjector();
-        qrp.setEvaluationResult(evaluationResult);
-
-        System.out.println(qrp.format());
     }
 }
