@@ -120,6 +120,11 @@ public class QueryResultProjector
             var secondSynonymPos = synonyms.indexOf(secondSynonym);
             var allowedNodes = value.getSecond();
 
+            if(secondSynonymPos == -1) {
+                filtered2.addAll(results);
+                break;
+            }
+
             synonymsChecked[synonymPos] = true;
             synonymsChecked[secondSynonymPos] = true;
 
