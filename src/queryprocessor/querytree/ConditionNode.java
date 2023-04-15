@@ -1,6 +1,7 @@
 package queryprocessor.querytree;
 
 import pkb.ast.ProcedureNode;
+import pkb.ast.VariableNode;
 import pkb.ast.abstraction.StatementNode;
 
 public class ConditionNode extends QTNode
@@ -23,6 +24,9 @@ public class ConditionNode extends QTNode
     {
         switch (getAttrRef().getAttr())
         {
+            case varName:
+                if(o instanceof VariableNode)
+                    return ((VariableNode) o).getName().equals(attrValue.getValue());
             case stmtNo:
                 if(o instanceof StatementNode)
                     return ((StatementNode) o).getStatementId() == Integer.parseInt(attrValue.getValue());

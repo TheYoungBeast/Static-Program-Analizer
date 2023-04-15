@@ -17,7 +17,7 @@ public class ArgTypeValidator implements Validator
     }
 
     public ArgTypeValidator(ArgNode arg, Keyword expectedType) {
-        this(arg, expectedType, arg.getSynonym().getKeyword().getName());
+        this(arg, expectedType, expectedType.getName());
     }
 
     @Override

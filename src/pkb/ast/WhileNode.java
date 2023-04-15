@@ -10,9 +10,10 @@ public class WhileNode extends ContainerNode {
   public WhileNode(int statementId, VariableNode condition, List<StatementNode> statements) {
     super(statementId, condition, statements);
 
-    this.setFirstChild(statements.get(0));
+    this.setFirstChild(condition);
+    condition.setParent(this);
 
-    ASTNode last = null;
+    ASTNode last = condition;
     for (var s: statements) {
       s.setParent(this);
 
