@@ -7,6 +7,7 @@ import java.util.List;
  * https://rosettacode.org/wiki/Cartesian_product_of_two_or_more_lists#Java
  */
 
+@SuppressWarnings("unused")
 public class CartesianProduct<V> {
 
     public List<List<V>> product(List<List<V>> lists) {

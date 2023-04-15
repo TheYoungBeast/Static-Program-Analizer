@@ -16,10 +16,7 @@ class ParseProcedure {
     match(TokenType.LBRACE);
     List<StatementNode> statements = parseStatements();
     match(TokenType.RBRACE);
-    ProcedureNode procedureNode = new ProcedureNode(name, statements);
-//    for (StatementNode statement : procedureNode.statements) {
-//      statement.setParent(procedureNode);
-//    }
-    return procedureNode;
+
+    return new ProcedureNode(name, statements);
   }
 }

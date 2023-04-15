@@ -50,7 +50,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                 if(!group.matches(Keyword.RESULT_TUPLE.getRegExpr()))
                     throw new InvalidQueryException("Invalid result tuple format. Expected e.g. <res1, res2, ...>", group);
 
-                var resTuple = group.replaceAll("<|>", "");
+                var resTuple = group.replaceAll("[<>]", "");
                 identifiers = Arrays.stream(resTuple.split(",")).map(String::trim).collect(Collectors.toList());
             }
             else {
@@ -105,8 +105,6 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                 }
             }
 
-            var str = query.substring(start, end);
-            var c = getConcatenatorCount(query, start, end);
             if(!relationships.isEmpty() && (relationships.size()-1) != getConcatenatorCount(query, start, end))
                 throw new InvalidQueryException("Missing 'and' concatenator in between relationships", query);
 

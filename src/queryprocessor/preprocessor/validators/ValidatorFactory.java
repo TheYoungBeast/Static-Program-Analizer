@@ -16,7 +16,7 @@ public class ValidatorFactory
 {
     public static Validator createRelationshipValidator(RelationshipRef ref)
     {
-        Validator validator = null;
+        Validator validator;
         switch (ref.getRelationshipType())
         {
             case T_PARENT:

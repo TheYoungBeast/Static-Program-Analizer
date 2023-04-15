@@ -2,12 +2,13 @@ package queryprocessor.evaluator;
 
 import pkb.ProgramKnowledgeBaseAPI;
 import pkb.ast.abstraction.ASTNode;
+import queryprocessor.evaluator.abstraction.EvaluationEngine;
 import utils.Pair;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class EvalEngine implements EvaluationEngine
 {
@@ -18,8 +19,9 @@ public class EvalEngine implements EvaluationEngine
     }
 
     @Override
-    public List<Pair<ASTNode, ASTNode>> evaluateParentRel(List<ASTNode> parentCandidates, List<ASTNode> childCandidates) {
-        var pairs = new ArrayList<Pair<ASTNode, ASTNode>>();
+    public Set<Pair<ASTNode, ASTNode>> evaluateParentRel(Set<ASTNode> parentCandidates, Set<ASTNode> childCandidates) {
+        Set<Pair<ASTNode, ASTNode>> pairs = new HashSet<>();
+        childCandidates = childCandidates.stream().filter(c -> !parentCandidates.contains(c)).collect(Collectors.toSet());
 
         for (var cCandidate: childCandidates) {
             if(cCandidate.getParent() == null)
@@ -38,8 +40,8 @@ public class EvalEngine implements EvaluationEngine
     }
 
     @Override
-    public List<Pair<ASTNode, ASTNode>> evaluateParentTransitiveRel(List<ASTNode> parentCandidates, List<ASTNode> childCandidates) {
-        var pairs = new HashSet<Pair<ASTNode, ASTNode>>();
+    public Set<Pair<ASTNode, ASTNode>> evaluateParentTransitiveRel(Set<ASTNode> parentCandidates, Set<ASTNode> childCandidates) {
+        Set<Pair<ASTNode, ASTNode>> pairs = new HashSet<>();
 
         for (var cCandidate: childCandidates) {
             if(cCandidate.getParent() == null)
@@ -62,11 +64,11 @@ public class EvalEngine implements EvaluationEngine
             }
         }
 
-        return new ArrayList<>(pairs);
+        return pairs;
     }
 
     @Override
-    public List<Pair<ASTNode, ASTNode>> evaluateUsesRel(List<ASTNode> statements, List<ASTNode> variables) {
+    public Set<Pair<ASTNode, ASTNode>> evaluateUsesRel(Set<ASTNode> statements, Set<ASTNode> variables) {
         Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
 
         for (var statement: statements) {
@@ -82,11 +84,11 @@ public class EvalEngine implements EvaluationEngine
             }
         }
 
-        return new ArrayList<>(pairSet);
+        return pairSet;
     }
 
     @Override
-    public List<Pair<ASTNode, ASTNode>> evaluateModifiesRel(List<ASTNode> statements, List<ASTNode> variables) {
+    public Set<Pair<ASTNode, ASTNode>> evaluateModifiesRel(Set<ASTNode> statements, Set<ASTNode> variables) {
         Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
 
         for (var statement: statements) {
@@ -94,7 +96,7 @@ public class EvalEngine implements EvaluationEngine
 
             for (var vMod: modifies) {
                 for (var variable: variables) {
-                    if(vMod == variable && vMod.getParent().getParent() == statement) {
+                    if(vMod == variable) {
                         pairSet.add(new Pair<>(statement, variable));
                         break;
                     }
@@ -102,6 +104,6 @@ public class EvalEngine implements EvaluationEngine
             }
         }
 
-        return new ArrayList<>(pairSet);
+        return pairSet;
     }
 }

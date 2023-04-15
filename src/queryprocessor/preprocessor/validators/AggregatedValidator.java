@@ -1,7 +1,5 @@
 package queryprocessor.preprocessor.validators;
 
-import queryprocessor.querytree.RelationshipRef;
-
 import java.util.List;
 
 public class AggregatedValidator implements Validator
