@@ -43,7 +43,7 @@ public class Main {
 
         QueryTree qt = null;
         try {
-            qt = qp.parseQuery("procedure p;while w; assign a; stmt s; variable v; constant c; if i; select <w, i, c> such that Parent(w, i) with c.value=2;");
+            qt = qp.parseQuery("procedure p;while w; assign a; stmt s; variable v; constant c; if i; select <p, w, v, i, s, a, c> such that Parent(w, i) with c.value=2;");
         } catch (InvalidQueryException | MissingArgumentException e) {
             System.err.println(e.explain());
             if(QoS.printStackTree)
