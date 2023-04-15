@@ -37,7 +37,7 @@ public class ControlFlowGraph {
 
       if (index >= astNodes.size() - 1) {
         CFGNode last = getOrCreateCfgNode(astNodes.get(index).getStatementId());
-        if (!(astNodes instanceof ProcedureNode)) {
+        if (!(astNodes instanceof ProcedureNode) && astNodes instanceof StatementNode) {
           last.addSuccessor(getOrCreateCfgNode(((StatementNode) astNodes.get(index).getParent()).getStatementId()));
         }
         return;
