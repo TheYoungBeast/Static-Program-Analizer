@@ -18,6 +18,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                     Keyword.WHILE,
                     Keyword.ASSIGN,
                     Keyword.STATEMENT,
+                    Keyword.IF,
                     Keyword.PROCEDURE,
                     Keyword.CONSTANT,
                     Keyword.VARIABLE)
