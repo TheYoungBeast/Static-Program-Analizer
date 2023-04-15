@@ -1,9 +1,9 @@
-package queryprocessor.evaluator;
+package queryprocessor.evaluator.abstraction;
 
 import pkb.ast.abstraction.ASTNode;
 import utils.Pair;
 
-import java.util.List;
+import java.util.Set;
 
 public interface EvaluationEngine
 {
@@ -13,7 +13,7 @@ public interface EvaluationEngine
      * @param childCandidates List of ASTNodes (candidates for child)
      * @return List of pairs of nodes in parent-child relationship
      */
-    List<Pair<ASTNode, ASTNode>> evaluateParentRel(List<ASTNode> parentCandidates, List<ASTNode> childCandidates);
+    Set<Pair<ASTNode, ASTNode>> evaluateParentRel(Set<ASTNode> parentCandidates, Set<ASTNode> childCandidates);
 
     /**
      * Evaluation method for transitive parenthood
@@ -21,7 +21,7 @@ public interface EvaluationEngine
      * @param childCandidates List of ASTNodes (candidates for child)
      * @return List of pairs of nodes in transitive parent-child relationship
      */
-    List<Pair<ASTNode, ASTNode>> evaluateParentTransitiveRel(List<ASTNode> parentCandidates, List<ASTNode> childCandidates);
+    Set<Pair<ASTNode, ASTNode>> evaluateParentTransitiveRel(Set<ASTNode> parentCandidates, Set<ASTNode> childCandidates);
 
     /**
      * Evaluation method for Uses relationship
@@ -29,7 +29,7 @@ public interface EvaluationEngine
      * @param variables List of ASTNodes (candidates that are being used)
      * @return List of pairs of nodes in Uses relationship
      */
-    List<Pair<ASTNode, ASTNode>> evaluateUsesRel(List<ASTNode> statements, List<ASTNode> variables);
+    Set<Pair<ASTNode, ASTNode>> evaluateUsesRel(Set<ASTNode> statements, Set<ASTNode> variables);
 
     /**
      * Evaluation method for Modifies relationship
@@ -37,5 +37,5 @@ public interface EvaluationEngine
      * @param variables List of ASTNodes (candidates that are being modified)
      * @return List of pairs of nodes in Modifies relationship
      */
-    List<Pair<ASTNode, ASTNode>> evaluateModifiesRel(List<ASTNode> statements, List<ASTNode> variables);
+    Set<Pair<ASTNode, ASTNode>> evaluateModifiesRel(Set<ASTNode> statements, Set<ASTNode> variables);
 }
