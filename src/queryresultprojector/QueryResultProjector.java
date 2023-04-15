@@ -93,7 +93,6 @@ public class QueryResultProjector
         boolean[] synonymsChecked = new boolean[synonyms.size()];
 
         boolean relExists = false;
-        var filtered2 = relExists ? new ArrayList<List<ASTNode>>() : results;
         for (int i = 0; i < synonyms.size(); i++) {
             var synonym = synonyms.get(i);
             if(relationshipsForKey.containsKey(synonym)) {
@@ -101,6 +100,8 @@ public class QueryResultProjector
                 relExists = true;
             }
         }
+
+        var filtered2 = relExists ? new ArrayList<List<ASTNode>>() : results;
 
         for (int i = 0; i < synonymsInRel.length; i++) {
             if(!synonymsInRel[i])
