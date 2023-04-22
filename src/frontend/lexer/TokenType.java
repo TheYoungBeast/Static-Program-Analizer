@@ -3,6 +3,7 @@ package frontend.lexer;
 public enum TokenType {
   PROCEDURE("procedure"),
   WHILE("while"),
+  CALL("call"),
   IF("if"),
   THEN("then"),
   ELSE("else"),

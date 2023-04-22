@@ -1,12 +1,15 @@
 package pkb;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import pkb.ast.ConstantNode;
 import pkb.ast.ProcedureNode;
+import pkb.ast.ProgramNode;
 import pkb.ast.VariableNode;
 import pkb.ast.abstraction.ASTNode;
 import pkb.cfg.CFGNode;
@@ -21,32 +24,33 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
 
   private final Set<ConstantNode> constTable;
 
-  private ProcedureNode ast;
+  private ProgramNode ast;
 
-  private CFGNode cfg;
+  private List<CFGNode> cfg;
 
   public ProgramKnowledgeBase() {
     modifies = new HashMap<>();
     uses = new HashMap<>();
     varTable = new LinkedHashSet<>();
     constTable = new LinkedHashSet<>();
+    cfg = new ArrayList<>();
   }
 
-  public void addAST(ProcedureNode node) {
+  public void addAST(ProgramNode node) {
     ast = node;
   }
 
   public void addCFG(CFGNode node) {
-    cfg = node;
+    cfg.add(node);
   }
 
   @Override
-  public ProcedureNode getAST() {
+  public ProgramNode getAST() {
     return ast;
   }
 
   @Override
-  public CFGNode getCFG() {
+  public List<CFGNode> getCFG() {
     return cfg;
   }
 

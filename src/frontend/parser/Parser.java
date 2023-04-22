@@ -1,6 +1,7 @@
 package frontend.parser;
 
 import static frontend.parser.ParseProcedure.parseProcedure;
+import static frontend.parser.ParseProgram.parseProgram;
 
 import pkb.ast.AssignmentNode;
 import pkb.ast.ConstantNode;
@@ -34,7 +35,7 @@ public class Parser {
   public static void parse(List<Token> tokens, ProgramKnowledgeBase pkb) {
     Parser.tokens = tokens;
     Parser.pkb = pkb;
-    pkb.addAST(parseProcedure());
+    pkb.addAST(parseProgram());
   }
 
   static Token match(TokenType type) {
@@ -50,6 +51,10 @@ public class Parser {
       return tokens.get(index).getType() == type;
     }
     return false;
+  }
+
+  static boolean isLastToken() {
+    return index >= tokens.size();
   }
 
   static void updateRelations(StatementNode node) {

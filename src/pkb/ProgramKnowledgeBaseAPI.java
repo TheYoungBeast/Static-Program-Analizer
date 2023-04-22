@@ -1,6 +1,8 @@
 package pkb;
 
+import java.util.List;
 import pkb.ast.ConstantNode;
+import pkb.ast.ProgramNode;
 import pkb.ast.VariableNode;
 import pkb.ast.abstraction.ASTNode;
 import pkb.cfg.CFGNode;
@@ -9,9 +11,9 @@ import java.util.Set;
 
 @SuppressWarnings("unused")
 public interface ProgramKnowledgeBaseAPI {
-    ProcedureNode getAST();
+    ProgramNode getAST();
 
-    CFGNode getCFG();
+    List<CFGNode> getCFG();
 
     Set<VariableNode> getModifies(ASTNode s);
 

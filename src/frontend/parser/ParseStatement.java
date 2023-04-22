@@ -1,6 +1,7 @@
 package frontend.parser;
 
 import static frontend.parser.ParseAssignment.parseAssignment;
+import static frontend.parser.ParseCall.parseCall;
 import static frontend.parser.ParseIf.parseIf;
 import static frontend.parser.ParseWhile.parseWhile;
 import static frontend.parser.Parser.check;
@@ -21,6 +22,8 @@ class ParseStatement {
       statement = parseWhile(id);
     } else if (check(TokenType.IF)) {
       statement = parseIf(id);
+    } else if (check(TokenType.CALL)) {
+      statement = parseCall(id);
     } else {
       statement = parseAssignment(id);
     }

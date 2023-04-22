@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import pkb.ProgramKnowledgeBase;
 import pkb.ast.ProcedureNode;
+import pkb.ast.ProgramNode;
 import pkb.ast.WhileNode;
 import pkb.ast.abstraction.StatementNode;
 
@@ -14,9 +15,12 @@ public class ControlFlowGraph {
 
   public static void createCfg(ProgramKnowledgeBase pkb) {
     cfgNodes = new HashMap<>();
-    CFGNode startingNode = getOrCreateCfgNode(pkb.getAST().statements.get(0).getStatementId());
-    generateCfgFromAst(pkb.getAST().statements, startingNode);
-    pkb.addCFG(startingNode);
+    ProgramNode ast = pkb.getAST();
+    for (ProcedureNode procedure : ast.procedures) {
+      CFGNode startingNode = getOrCreateCfgNode(procedure.statements.get(0).getStatementId());
+      generateCfgFromAst(procedure.statements, startingNode);
+      pkb.addCFG(startingNode);
+    }
   }
 
   private static CFGNode getOrCreateCfgNode(int statementId) {
