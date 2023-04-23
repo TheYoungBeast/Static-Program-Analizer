@@ -5,7 +5,7 @@ public enum Keyword {
   SELECT("Select","select"),
   SUCH_THAT("Such That","such that"),
   WITH("With","with"),
-  WITH_CLAUSE("With-cl", "with\\s+[a-zA-Z0-9]+\\.[a-zA-Z#]+\\s*=\\s*(([0-9]+)|(\\s*\\\"(.*?)\\\"))"),
+  WITH_CLAUSE("With-cl", "with\\s+[a-zA-Z0-9]+\\.[a-zA-Z#]+\\s*=\\s*(([0-9]+)|(\\s*\\\"(.*?)\\\")|([a-zA-Z0-9]+\\.[a-zA-Z#]+))"),
   PATTERN("Pattern","pattern"),
   BOOLEAN("Boolean", "BOOLEAN"),
   IF("If", "if"),
@@ -34,7 +34,7 @@ public enum Keyword {
   SYNONYMS("(?<=select)\\s*(.*?)((?=such)|(?=with)|(?=pattern)|(?=$))"), // match synonyms between select ... such/with/pattern/$
   //ATTR_COND("([a-zA-Z]+[0-9]*\\.(procName|varName|stmt#)).*?(?=\\=)"), // match synonyms with attributes
   //ATTR2("(?<=\\=)\\s*([0-9]+)|((?<=\\\")[a-zA-Z_]+)(?=\\\")"), // extract what's after attribute | [with p1.stmt#=9]
-  ARGS("(?<=\\()\\s*[a-zA-Z_]+[0-9]*\\s*(,\\s*[a-zA-Z]+[0-9]*)*\\s*(?=\\))"), // extract args from func
+  REL_ARGS("(?<=\\()\\s*\\\"*[a-zA-Z_]+[0-9]*\\\"*\\s*(,\\s*\\\"*[a-zA-Z]+[0-9]*\\\"*)*\\s*(?=\\))"), // extract all types of args from rel func
   PROCNAME("procName"),
   VARNAME("varName"),
   VALUE("value"),

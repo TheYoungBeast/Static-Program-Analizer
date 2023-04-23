@@ -114,7 +114,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
         public List<Synonym<?>> extractArguments(String query, Keyword relType, int start, int end) throws MissingArgumentException, InvalidQueryException
         {
-            var argsMatcher = Pattern.compile(Keyword.ARGS.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query).region(start, end);
+            var argsMatcher = Pattern.compile(Keyword.REL_ARGS.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query).region(start, end);
 
             if(!argsMatcher.find())
                 throw new MissingArgumentException(relType.getName(), 0, query);
@@ -123,7 +123,14 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
             var arguments = new ArrayList<Synonym<?>>();
             for (var arg: args) {
-                var synonym = findSynonym(arg.trim());
+
+                Synonym<?> synonym;
+                if(arg.contains("\"")) {
+                    arg = arg.replaceAll("\"", "").trim();
+                    synonym = new NamedVariableSynonym(arg);
+                }
+                else
+                    synonym = findSynonym(arg.trim());
 
                 if(synonym == null)
                     throw new InvalidQueryException("Unrecognized parameter synonym", arg);
@@ -178,6 +185,9 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
             if(value.contains("\""))
                 value = value.replaceAll("\"", "");
+            else if (value.contains("\\.")) {
+
+            }
 
             return new Pair<>(new AttrRef(synonym, attr), new AttrValue(value));
         }
