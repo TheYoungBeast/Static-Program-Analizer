@@ -6,7 +6,9 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import pkb.ast.CallNode;
 import pkb.ast.ConstantNode;
 import pkb.ast.ProcedureNode;
 import pkb.ast.ProgramNode;
@@ -20,6 +22,10 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
 
   private final Map<ASTNode, Set<VariableNode>> uses;
 
+  private final Map<ProcedureNode, Set<ProcedureNode>> calls;
+
+  private final Set<CallNode> callNodes;
+
   private final Set<VariableNode> varTable;
 
   private final Set<ConstantNode> constTable;
@@ -31,6 +37,8 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
   public ProgramKnowledgeBase() {
     modifies = new HashMap<>();
     uses = new HashMap<>();
+    calls = new HashMap<>();
+    callNodes = new LinkedHashSet<>();
     varTable = new LinkedHashSet<>();
     constTable = new LinkedHashSet<>();
     cfg = new ArrayList<>();
@@ -38,6 +46,7 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
 
   public void addAST(ProgramNode node) {
     ast = node;
+    calculateCallsRelations();
   }
 
   public void addCFG(CFGNode node) {
@@ -93,7 +102,27 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
   public void addVariableToVarTable(VariableNode v) {
     varTable.add(v);
   }
+
   public void addConstantToConstTable(ConstantNode v) {
     constTable.add(v);
+  }
+
+  public void addCallNode(CallNode c) {
+    callNodes.add(c);
+  }
+
+  private void calculateCallsRelations() {
+    for (CallNode call : callNodes) {
+      ASTNode procedure = call.getParent();
+      while (!(procedure instanceof ProcedureNode)) {
+        procedure = procedure.getParent();
+      }
+      calls.computeIfAbsent((ProcedureNode) procedure, c -> new LinkedHashSet<>()).add(
+          ast.procedures.stream()
+              .filter(procedureNode -> Objects.equals(procedureNode.getName(), call.getCalledProcedureName()))
+              .findFirst()
+              .orElse(null)
+      );
+    }
   }
 }

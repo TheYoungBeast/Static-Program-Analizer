@@ -1,5 +1,9 @@
 package pkb.ast;
 
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
 import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.StatementNode;
 import java.util.List;

@@ -1,9 +1,9 @@
 package frontend.parser;
 
-import static frontend.parser.ParseProcedure.parseProcedure;
 import static frontend.parser.ParseProgram.parseProgram;
 
 import pkb.ast.AssignmentNode;
+import pkb.ast.CallNode;
 import pkb.ast.ConstantNode;
 import pkb.ast.IfNode;
 import pkb.ast.MinusNode;
@@ -64,6 +64,8 @@ public class Parser {
       updateRelationsForWhile((WhileNode) node);
     } else if (node instanceof IfNode) {
       updateRelationsForIf((IfNode) node);
+    } else if (node instanceof CallNode) {
+      pkb.addCallNode((CallNode) node);
     }
   }
 
