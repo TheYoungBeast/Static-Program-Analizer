@@ -46,13 +46,12 @@ public class Main {
 
         var qp = new QueryPreprocessorBase();
 
-        QueryTree qt = null;
-
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Ready");
 
         while(true) {
+            QueryTree qt = null;
             var queryString = new String[2];
 
             queryString[0] = String.valueOf(scanner.nextLine()); // deklaracje
