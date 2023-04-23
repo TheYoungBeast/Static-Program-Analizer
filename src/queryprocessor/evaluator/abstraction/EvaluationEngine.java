@@ -38,4 +38,12 @@ public interface EvaluationEngine
      * @return List of pairs of nodes in Modifies relationship
      */
     Set<Pair<ASTNode, ASTNode>> evaluateModifiesRel(Set<ASTNode> statements, Set<ASTNode> variables);
+
+    /**
+     * Evaluation method for Calls relationship
+     * @param callingCandidate List of ASTNodes (Procedures) (candidates that calls another procedure)
+     * @param beingCalledCandidate List of ASTNodes (Procedures) (candidates that are being called by another procedure)
+     * @return List of pairs of nodes in Calls relationship
+     */
+    Set<Pair<ASTNode, ASTNode>> evaluateCallsRel(Set<ASTNode> callingCandidate, Set<ASTNode> beingCalledCandidate);
 }
