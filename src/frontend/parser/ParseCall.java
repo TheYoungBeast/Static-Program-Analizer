@@ -1,5 +1,6 @@
 package frontend.parser;
 
+import static frontend.parser.Parser.getProcedureFromPkbOrNew;
 import static frontend.parser.Parser.match;
 
 import frontend.lexer.TokenType;
@@ -10,8 +11,8 @@ class ParseCall {
 
   static StatementNode parseCall(int id) {
     match(TokenType.CALL);
-    String calledProcedure = match(TokenType.NAME).getValue();
+    String calledProcedureName = match(TokenType.NAME).getValue();
     match(TokenType.SEMICOLON);
-    return new CallNode(id, calledProcedure);
+    return new CallNode(id, getProcedureFromPkbOrNew(calledProcedureName));
   }
 }

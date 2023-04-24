@@ -1,6 +1,7 @@
 package frontend.parser;
 
 import static frontend.parser.ParseStatements.parseStatements;
+import static frontend.parser.Parser.getProcedureFromPkbOrNew;
 import static frontend.parser.Parser.match;
 
 import pkb.ast.ProcedureNode;
@@ -17,6 +18,6 @@ class ParseProcedure {
     List<StatementNode> statements = parseStatements();
     match(TokenType.RBRACE);
 
-    return new ProcedureNode(name, statements);
+    return getProcedureFromPkbOrNew(name).setStatements(statements);
   }
 }
