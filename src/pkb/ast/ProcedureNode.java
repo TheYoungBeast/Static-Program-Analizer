@@ -12,12 +12,34 @@ public class ProcedureNode extends ASTNode {
 
   private final String name;
 
-  public final List<StatementNode> statements;
+  private List<StatementNode> statements;
+
+  public ProcedureNode(String name) {
+    this.name = name;
+  }
 
   public ProcedureNode(String name, List<StatementNode> statements) {
     this.name = name;
     this.statements = statements;
 
+    setParentAndSibling();
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public List<StatementNode> getStatements() {
+    return statements;
+  }
+
+  public ProcedureNode setStatements(List<StatementNode> statements) {
+    this.statements = statements;
+    setParentAndSibling();
+    return this;
+  }
+
+  private void setParentAndSibling() {
     ASTNode last = null;
     this.setFirstChild(statements.get(0));
     for (var s: statements) {
@@ -28,9 +50,5 @@ public class ProcedureNode extends ASTNode {
 
       last = s;
     }
-  }
-
-  public String getName() {
-    return name;
   }
 }

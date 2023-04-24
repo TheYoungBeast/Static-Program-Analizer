@@ -2,12 +2,15 @@ package frontend.parser;
 
 import static frontend.parser.ParseProgram.parseProgram;
 
+import java.util.ArrayList;
+import java.util.Objects;
 import pkb.ast.AssignmentNode;
 import pkb.ast.CallNode;
 import pkb.ast.ConstantNode;
 import pkb.ast.IfNode;
 import pkb.ast.MinusNode;
 import pkb.ast.PlusNode;
+import pkb.ast.ProcedureNode;
 import pkb.ast.TimesNode;
 import pkb.ast.VariableNode;
 import pkb.ast.WhileNode;
@@ -57,6 +60,15 @@ public class Parser {
     return index >= tokens.size();
   }
 
+  static ProcedureNode getProcedureFromPkbOrNew(String name) {
+    ProcedureNode procedure = pkb.getProcTable().stream()
+        .filter(procedureNode -> Objects.equals(procedureNode.getName(), name))
+        .findFirst()
+        .orElse(new ProcedureNode(name));
+    pkb.addProcedureToProcTable(procedure);
+    return procedure;
+  }
+
   static void updateRelations(StatementNode node) {
     if (node instanceof AssignmentNode) {
       updateRelationsForAssignment((AssignmentNode) node);
@@ -64,8 +76,6 @@ public class Parser {
       updateRelationsForWhile((WhileNode) node);
     } else if (node instanceof IfNode) {
       updateRelationsForIf((IfNode) node);
-    } else if (node instanceof CallNode) {
-      pkb.addCallNode((CallNode) node);
     }
   }
 

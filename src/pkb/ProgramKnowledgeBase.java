@@ -14,6 +14,8 @@ import pkb.ast.ProcedureNode;
 import pkb.ast.ProgramNode;
 import pkb.ast.VariableNode;
 import pkb.ast.abstraction.ASTNode;
+import pkb.ast.abstraction.ContainerNode;
+import pkb.ast.abstraction.StatementNode;
 import pkb.cfg.CFGNode;
 
 public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
@@ -22,13 +24,13 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
 
   private final Map<ASTNode, Set<VariableNode>> uses;
 
-  private final Map<ProcedureNode, Set<ProcedureNode>> calls;
-
-  private final Set<CallNode> callNodes;
+  private final Map<ASTNode, Set<ProcedureNode>> calls;
 
   private final Set<VariableNode> varTable;
 
   private final Set<ConstantNode> constTable;
+
+  private final Set<ProcedureNode> procTable;
 
   private ProgramNode ast;
 
@@ -38,9 +40,9 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
     modifies = new HashMap<>();
     uses = new HashMap<>();
     calls = new HashMap<>();
-    callNodes = new LinkedHashSet<>();
     varTable = new LinkedHashSet<>();
     constTable = new LinkedHashSet<>();
+    procTable = new LinkedHashSet<>();
     cfg = new ArrayList<>();
   }
 
@@ -89,6 +91,14 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
     return uses.getOrDefault(s, Collections.emptySet());
   }
 
+  public void addCalls(ASTNode s, ProcedureNode p) {
+    calls.computeIfAbsent(s, k -> new LinkedHashSet<>()).add(p);
+  }
+
+  public void addCalls(ASTNode s, Set<ProcedureNode> ps) {
+    calls.computeIfAbsent(s, k -> new LinkedHashSet<>()).addAll(ps);
+  }
+
   @Override
   public Set<VariableNode> getVarTable() {
     return varTable;
@@ -99,6 +109,10 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
     return constTable;
   }
 
+  public Set<ProcedureNode> getProcTable() {
+    return procTable;
+  }
+
   public void addVariableToVarTable(VariableNode v) {
     varTable.add(v);
   }
@@ -107,22 +121,21 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
     constTable.add(v);
   }
 
-  public void addCallNode(CallNode c) {
-    callNodes.add(c);
+  public void addProcedureToProcTable(ProcedureNode p) {
+    procTable.add(p);
   }
 
   private void calculateCallsRelations() {
-    for (CallNode call : callNodes) {
-      ASTNode procedure = call.getParent();
-      while (!(procedure instanceof ProcedureNode)) {
-        procedure = procedure.getParent();
+    for (ProcedureNode procedure : procTable) {
+      List<StatementNode> statements = procedure.getStatements();
+      for (int i = 0; i < statements.size() - 1; ++i) {
+        if (statements.get(i) instanceof ContainerNode) {
+          statements.addAll(((ContainerNode) statements.get(i)).getStatements());
+        } else if (statements.get(i) instanceof CallNode) {
+          calls.computeIfAbsent(procedure, c -> new LinkedHashSet<>())
+              .add(((CallNode) statements.get(i)).getCalledProcedure());
+        }
       }
-      calls.computeIfAbsent((ProcedureNode) procedure, c -> new LinkedHashSet<>()).add(
-          ast.procedures.stream()
-              .filter(procedureNode -> Objects.equals(procedureNode.getName(), call.getCalledProcedureName()))
-              .findFirst()
-              .orElse(null)
-      );
     }
   }
 }

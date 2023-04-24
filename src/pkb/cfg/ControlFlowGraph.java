@@ -17,8 +17,8 @@ public class ControlFlowGraph {
     cfgNodes = new HashMap<>();
     ProgramNode ast = pkb.getAST();
     for (ProcedureNode procedure : ast.procedures) {
-      CFGNode startingNode = getOrCreateCfgNode(procedure.statements.get(0).getStatementId());
-      generateCfgFromAst(procedure.statements, startingNode);
+      CFGNode startingNode = getOrCreateCfgNode(procedure.getStatements().get(0).getStatementId());
+      generateCfgFromAst(procedure.getStatements(), startingNode);
       pkb.addCFG(startingNode);
     }
   }

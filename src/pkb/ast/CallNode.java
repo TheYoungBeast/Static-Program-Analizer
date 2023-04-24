@@ -4,14 +4,14 @@ import pkb.ast.abstraction.StatementNode;
 
 public class CallNode extends StatementNode {
 
-  private final String calledProcedureName;
+  private final ProcedureNode calledProcedure;
 
-  public CallNode(int statementId, String calledProcedureName) {
+  public CallNode(int statementId, ProcedureNode calledProcedure) {
     super(statementId);
-    this.calledProcedureName = calledProcedureName;
+    this.calledProcedure = calledProcedure;
   }
 
-  public String getCalledProcedureName() {
-    return calledProcedureName;
+  public ProcedureNode getCalledProcedure() {
+    return calledProcedure;
   }
 }
