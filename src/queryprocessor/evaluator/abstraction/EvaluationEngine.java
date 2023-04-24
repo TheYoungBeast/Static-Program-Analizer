@@ -62,4 +62,8 @@ public interface EvaluationEngine
      * @return List of pairs of nodes in transitive Follows relationship
      */
     Set<Pair<ASTNode, ASTNode>> evaluateFollowsTransitiveRel(Set<ASTNode> precedingCandidate, Set<ASTNode> followingCandidate);
+
+    Set<Pair<ASTNode, ASTNode>> evaluateNextRel(Set<ASTNode> next1, Set<ASTNode> next2);
+
+    Set<Pair<ASTNode, ASTNode>> evaluateAffectRel(Set<ASTNode> set1, Set<ASTNode> set2);
 }

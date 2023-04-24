@@ -9,6 +9,7 @@ import queryprocessor.preprocessor.synonyms.Synonym;
 import queryprocessor.querytree.*;
 import utils.Pair;
 
+import java.security.Key;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -32,8 +33,13 @@ public class QueryEvaluatorBase implements QueryEvaluator
         evalAlgorithms.put(Keyword.USES, engine::evaluateUsesRel);
         evalAlgorithms.put(Keyword.MODIFIES, engine::evaluateModifiesRel);
         evalAlgorithms.put(Keyword.CALLS, engine::evaluateCallsRel);
+        evalAlgorithms.put(Keyword.T_CALLS, engine::evaluateCallsRel);
         evalAlgorithms.put(Keyword.FOLLOWS, engine::evaluateFollowsRel);
         evalAlgorithms.put(Keyword.T_FOLLOWS, engine::evaluateFollowsTransitiveRel);
+        evalAlgorithms.put(Keyword.AFFECTS, engine::evaluateAffectRel);
+        evalAlgorithms.put(Keyword.T_AFFECTS, engine::evaluateAffectRel);
+        evalAlgorithms.put(Keyword.NEXT, engine::evaluateNextRel);
+        evalAlgorithms.put(Keyword.T_NEXT, engine::evaluateNextRel);
     }
 
     @Override

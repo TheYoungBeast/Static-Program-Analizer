@@ -32,8 +32,15 @@ public class SynonymFactory
             case BOOLEAN:
                 t = ASTNode.class;
                 identifier = "";
+                break;
             case IF:
                 t = IfNode.class;
+                break;
+            case CALL:
+                t = CallNode.class;
+                break;
+            case PROG_LINE:
+                t = StatementNode.class;
                 break;
             default:
                 throw new UnsupportedOperationException("Keyword support not implemented");

@@ -23,6 +23,7 @@ public class ValidatorFactory
             case PARENT:
                 validator = new AggregatedValidator(createParentValidatorChain(ref));
                 break;
+            case T_CALLS:
             case CALLS:
                 validator = new AggregatedValidator(createCallsValidatorChain(ref));
                 break;
@@ -36,11 +37,37 @@ public class ValidatorFactory
             case FOLLOWS:
                 validator = new AggregatedValidator(createFollowsValidatorChain(ref));
                 break;
+            case T_AFFECTS:
+            case AFFECTS:
+                validator = new AggregatedValidator(createAffectValidatorChain(ref));
+                break;
+            case T_NEXT:
+            case NEXT:
+                validator = new AggregatedValidator(createNextValidatorChain(ref));
+                break;
             default:
                 throw new UnsupportedOperationException();
         }
 
         return validator;
+    }
+
+    private static List<Validator> createNextValidatorChain(RelationshipRef ref) {
+        var chain = new ArrayList<Validator>();
+
+        final var args = 2;
+        chain.add(new ArgumentNumberValidator(ref, args)); // przenies informacje o ilosc arg itp do Statycznej tabeli
+
+        return chain;
+    }
+
+    private static List<Validator> createAffectValidatorChain(RelationshipRef ref) {
+        var chain = new ArrayList<Validator>();
+
+        final var args = 2;
+        chain.add(new ArgumentNumberValidator(ref, args)); // przenies informacje o ilosc arg itp do Statycznej tabeli
+
+        return chain;
     }
 
     private static List<Validator> createFollowsValidatorChain(RelationshipRef ref) {
@@ -52,6 +79,7 @@ public class ValidatorFactory
         for (int i = 0; i < ref.getArgSize(); i++ )
             chain.add(new IsAnyValidator(List.of(
                     new ArgTypeValidator(ref.getArg(i), Keyword.STATEMENT),
+                    new ArgTypeValidator(ref.getArg(i), Keyword.CALL),
                     new ArgTypeValidator(ref.getArg(i), Keyword.ASSIGN),
                     new ArgTypeValidator(ref.getArg(i), Keyword.IF),
                     new ArgTypeValidator(ref.getArg(i), Keyword.WHILE))

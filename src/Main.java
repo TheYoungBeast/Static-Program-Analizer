@@ -61,20 +61,24 @@ public class Main {
 
             try {
                 qt = qp.parseQuery(queryString[0] + queryString[1]);
+
+                EvaluationEngine ee = new EvalEngine(pkb);
+                QueryEvaluator evaluator = new QueryEvaluatorBase(pkb, ee);
+                var evaluationResult = evaluator.evaluate(qt);
+
+                var qrp = new QueryResultProjector();
+                qrp.setEvaluationResult(evaluationResult);
+
+                System.out.println(qrp.format());
             } catch (InvalidQueryException | MissingArgumentException e) {
-                System.err.println(e.explain());
+                System.err.println("# " + e.explain());
+                if (QoS.printStackTree)
+                    e.printStackTrace();
+            } catch (Exception e) {
+                System.err.println("# " + e.getMessage());
                 if (QoS.printStackTree)
                     e.printStackTrace();
             }
-
-            EvaluationEngine ee = new EvalEngine(pkb);
-            QueryEvaluator evaluator = new QueryEvaluatorBase(pkb, ee);
-            var evaluationResult = evaluator.evaluate(qt);
-
-            var qrp = new QueryResultProjector();
-            qrp.setEvaluationResult(evaluationResult);
-
-            System.out.println(qrp.format());
         }
     }
 }

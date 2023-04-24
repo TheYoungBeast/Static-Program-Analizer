@@ -7,6 +7,7 @@ import pkb.ast.abstraction.StatementNode;
 import queryprocessor.evaluator.abstraction.EvaluationEngine;
 import utils.Pair;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
@@ -96,7 +97,7 @@ public class EvalEngine implements EvaluationEngine
             Set<ProcedureNode> calledProcedures = api.getCalls(caller);
 
             for (var called: beingCalledCandidate) {
-                if(calledProcedures.contains(called))
+                if(calledProcedures.contains(called) && caller != called)
                     pairSet.add(new Pair<>(caller, called));
             }
         }
@@ -148,5 +149,15 @@ public class EvalEngine implements EvaluationEngine
         }
 
         return pairSet;
+    }
+
+    @Override
+    public Set<Pair<ASTNode, ASTNode>> evaluateNextRel(Set<ASTNode> next1, Set<ASTNode> next2) {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Set<Pair<ASTNode, ASTNode>> evaluateAffectRel(Set<ASTNode> set1, Set<ASTNode> set2) {
+        return Collections.emptySet();
     }
 }

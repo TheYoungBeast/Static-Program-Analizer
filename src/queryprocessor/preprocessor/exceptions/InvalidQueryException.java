@@ -27,6 +27,6 @@ public class InvalidQueryException extends Exception implements QueryException {
   }
 
   public String explain() {
-    return String.format("\n%s at line %d: %s", this.getMessage(), line, details);
+    return String.format("%s at line %d: %s", this.getMessage(), line, details);
   }
 }

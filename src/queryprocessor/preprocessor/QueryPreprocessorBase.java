@@ -22,6 +22,8 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                     Keyword.ASSIGN,
                     Keyword.STATEMENT,
                     Keyword.IF,
+                    Keyword.CALL,
+                    Keyword.PROG_LINE,
                     Keyword.PROCEDURE,
                     Keyword.CONSTANT,
                     Keyword.VARIABLE)
@@ -33,6 +35,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                     Keyword.MODIFIES, Keyword.T_MODIFIES,
                     Keyword.CALLS, Keyword.T_CALLS,
                     Keyword.USES, Keyword.T_USES,
+                    Keyword.NEXT, Keyword.T_NEXT,
                     Keyword.AFFECTS, Keyword.T_AFFECTS)
     );
 
