@@ -34,6 +34,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
         evalAlgorithms.put(Keyword.T_PARENT, engine::evaluateParentTransitiveRel);
         evalAlgorithms.put(Keyword.USES, engine::evaluateUsesRel);
         evalAlgorithms.put(Keyword.MODIFIES, engine::evaluateModifiesRel);
+        evalAlgorithms.put(Keyword.CALLS, engine::evaluateCallsRel);
     }
 
     @Override
