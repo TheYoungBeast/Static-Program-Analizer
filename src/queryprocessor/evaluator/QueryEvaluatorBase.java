@@ -12,6 +12,7 @@ import queryprocessor.querytree.RelationshipRef;
 import queryprocessor.querytree.ResNode;
 import utils.Pair;
 
+import java.security.Key;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -35,6 +36,8 @@ public class QueryEvaluatorBase implements QueryEvaluator
         evalAlgorithms.put(Keyword.USES, engine::evaluateUsesRel);
         evalAlgorithms.put(Keyword.MODIFIES, engine::evaluateModifiesRel);
         evalAlgorithms.put(Keyword.CALLS, engine::evaluateCallsRel);
+        evalAlgorithms.put(Keyword.FOLLOWS, engine::evaluateFollowsRel);
+        evalAlgorithms.put(Keyword.T_FOLLOWS, engine::evaluateFollowsTransitiveRel);
     }
 
     @Override

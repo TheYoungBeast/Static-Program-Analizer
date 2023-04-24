@@ -32,11 +32,32 @@ public class ValidatorFactory
             case MODIFIES:
                 validator = new AggregatedValidator(createModifiesValidatorChain(ref));
                 break;
+            case T_FOLLOWS:
+            case FOLLOWS:
+                validator = new AggregatedValidator(createFollowsValidatorChain(ref));
+                break;
             default:
                 throw new UnsupportedOperationException();
         }
 
         return validator;
+    }
+
+    private static List<Validator> createFollowsValidatorChain(RelationshipRef ref) {
+        var chain = new ArrayList<Validator>();
+
+        final var args = 2;
+        chain.add(new ArgumentNumberValidator(ref, args)); // przenies informacje o ilosc arg itp do Statycznej tabeli
+
+        for (int i = 0; i < ref.getArgSize(); i++ )
+            chain.add(new IsAnyValidator(List.of(
+                    new ArgTypeValidator(ref.getArg(i), Keyword.STATEMENT),
+                    new ArgTypeValidator(ref.getArg(i), Keyword.ASSIGN),
+                    new ArgTypeValidator(ref.getArg(i), Keyword.IF),
+                    new ArgTypeValidator(ref.getArg(i), Keyword.WHILE))
+            ));
+
+        return chain;
     }
 
     private static List<Validator> createModifiesValidatorChain(RelationshipRef ref) {
