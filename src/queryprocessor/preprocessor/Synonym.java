@@ -6,8 +6,8 @@ import java.util.Objects;
 
 public class Synonym <T extends ASTNode> {
 
-    private final String identifier;
-    private final Keyword keyword;
+    protected final String identifier;
+    protected final Keyword keyword;
     private final Class<T> syntaxType;
 
     public Synonym(String identifier, Keyword keyword, Class<T> syntaxType) {

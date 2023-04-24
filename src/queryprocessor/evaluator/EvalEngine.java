@@ -1,11 +1,12 @@
 package queryprocessor.evaluator;
 
 import pkb.ProgramKnowledgeBaseAPI;
+import pkb.ast.CallNode;
 import pkb.ast.abstraction.ASTNode;
 import queryprocessor.evaluator.abstraction.EvaluationEngine;
 import utils.Pair;
 
-import java.util.ArrayList;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -74,13 +75,10 @@ public class EvalEngine implements EvaluationEngine
         for (var statement: statements) {
             var uses = api.getUses(statement);
 
-            for (var vUse: uses) {
-                for (var variable: variables) {
-                    if(vUse == variable) {
-                        pairSet.add(new Pair<>(statement, variable));
-                        break;
-                    }
-                }
+            for (var variable: variables)
+            {
+               if(uses.contains(variable))
+                    pairSet.add(new Pair<>(statement, variable));
             }
         }
 
@@ -94,13 +92,27 @@ public class EvalEngine implements EvaluationEngine
         for (var statement: statements) {
             var modifies = api.getModifies(statement);
 
-            for (var vMod: modifies) {
-                for (var variable: variables) {
-                    if(vMod == variable) {
-                        pairSet.add(new Pair<>(statement, variable));
-                        break;
-                    }
+            for (var variable: variables) {
+                if(modifies.contains(variable)) {
+                    pairSet.add(new Pair<>(statement, variable));
+                    break;
                 }
+            }
+        }
+
+        return pairSet;
+    }
+
+    @Override
+    public Set<Pair<ASTNode, ASTNode>> evaluateCallsRel(Set<ASTNode> callingCandidate, Set<ASTNode> beingCalledCandidate) {
+        Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
+
+        for (var caller: callingCandidate) {
+            Set<CallNode> calledProcedures = null;
+
+            for (var called: beingCalledCandidate) {
+                if(calledProcedures.contains(called))
+                    pairSet.add(new Pair<>(caller, called));
             }
         }
 
