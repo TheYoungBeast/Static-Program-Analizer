@@ -1,14 +1,17 @@
 package queryprocessor.evaluator;
 
 import pkb.ProgramKnowledgeBaseAPI;
-import pkb.ast.CallNode;
+import pkb.ast.ProcedureNode;
 import pkb.ast.abstraction.ASTNode;
+import pkb.ast.abstraction.StatementNode;
 import queryprocessor.evaluator.abstraction.EvaluationEngine;
 import utils.Pair;
 
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 public class EvalEngine implements EvaluationEngine
@@ -22,19 +25,15 @@ public class EvalEngine implements EvaluationEngine
     @Override
     public Set<Pair<ASTNode, ASTNode>> evaluateParentRel(Set<ASTNode> parentCandidates, Set<ASTNode> childCandidates) {
         Set<Pair<ASTNode, ASTNode>> pairs = new HashSet<>();
-        childCandidates = childCandidates.stream().filter(c -> !parentCandidates.contains(c)).collect(Collectors.toSet());
+        //parentCandidates = parentCandidates.stream().filter(p -> !childCandidates.contains(p)).collect(Collectors.toSet());
 
         for (var cCandidate: childCandidates) {
             if(cCandidate.getParent() == null)
                 continue;
 
             var parent = cCandidate.getParent();
-            for (var pCandidate: parentCandidates) {
-                if(parent == pCandidate) {
-                    pairs.add(new Pair<>(pCandidate, cCandidate));
-                    break;
-                }
-            }
+            if(parentCandidates.contains(parent) && parent != cCandidate)
+                pairs.add(new Pair<>(parent, cCandidate));
         }
 
         return pairs;
@@ -44,24 +43,13 @@ public class EvalEngine implements EvaluationEngine
     public Set<Pair<ASTNode, ASTNode>> evaluateParentTransitiveRel(Set<ASTNode> parentCandidates, Set<ASTNode> childCandidates) {
         Set<Pair<ASTNode, ASTNode>> pairs = new HashSet<>();
 
-        for (var cCandidate: childCandidates) {
-            if(cCandidate.getParent() == null)
-                continue;
+        for (var childCandidate: childCandidates) {
+            var parent = childCandidate.getParent();
+            while (parent != null) {
+                if(parentCandidates.contains(parent))
+                    pairs.add(new Pair<>(parent, childCandidate));
 
-            var parent = cCandidate.getParent();
-            for (var pCandidate: parentCandidates) {
-                if(parent == pCandidate)
-                {
-                    pairs.add(new Pair<>(pCandidate, cCandidate));
-
-                    var nextParent = pCandidate.getParent();
-                    // rodzic rodzica musi byc tego samego typu co kandydat na rodzica
-                    while (nextParent != null && nextParent.getClass().equals(pCandidate.getClass()))
-                    {
-                        pairs.add(new Pair<>(nextParent, cCandidate));
-                        nextParent = nextParent.getParent();
-                    }
-                }
+                parent = parent.getParent();
             }
         }
 
@@ -108,11 +96,57 @@ public class EvalEngine implements EvaluationEngine
         Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
 
         for (var caller: callingCandidate) {
-            Set<CallNode> calledProcedures = new HashSet<>(); // Tutaj ma byc wstawka z PKB
+            Set<ProcedureNode> calledProcedures = api.getCalls(caller);
 
             for (var called: beingCalledCandidate) {
                 if(calledProcedures.contains(called))
                     pairSet.add(new Pair<>(caller, called));
+            }
+        }
+
+        return pairSet;
+    }
+
+    @Override
+    public Set<Pair<ASTNode, ASTNode>> evaluateFollowsRel(Set<ASTNode> precedingCandidate, Set<ASTNode> followingCandidate) {
+        Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
+
+        for (var pre: precedingCandidate) {
+            for (var following: followingCandidate) {
+                if(pre.getRightSibling() == following )
+                {
+                    pairSet.add(new Pair<>(pre, following));
+                    break;
+                }
+            }
+        }
+
+        return pairSet;
+    }
+
+    @Override
+    public Set<Pair<ASTNode, ASTNode>> evaluateFollowsTransitiveRel(Set<ASTNode> precedingCandidate, Set<ASTNode> followingCandidate)
+    {
+        Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
+
+        for (var pre: precedingCandidate) {
+            Stack<ASTNode> stack = new Stack<>();
+            for (var following: followingCandidate) {
+               var node = pre.getRightSibling();
+
+                do {
+                    if(node == null) {
+                        if(!stack.empty())
+                            node = stack.pop();
+                        continue;
+                    }
+                    stack.add(node.getRightSibling());
+
+                    if(node instanceof StatementNode && followingCandidate.contains(node))
+                        pairSet.add(new Pair<>(pre, node));
+
+                    node = node.getRightSibling();
+                } while(!stack.empty() || node != null);
             }
         }
 
