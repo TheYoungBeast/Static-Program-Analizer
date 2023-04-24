@@ -1,6 +1,7 @@
-package queryprocessor.preprocessor;
+package queryprocessor.preprocessor.synonyms;
 
 import pkb.ast.abstraction.ASTNode;
+import queryprocessor.preprocessor.Keyword;
 
 import java.util.Objects;
 

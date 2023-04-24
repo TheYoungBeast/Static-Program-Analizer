@@ -12,5 +12,10 @@ public class IfNode extends ContainerNode {
     super(statementId, condition, thenStatements);
     this.elseStatements = elseStatements;
     setParentAndSibling(elseStatements);
+
+    // strona 16 Handbook, temporal fix
+    this.setFirstChild(condition);
+    condition.setRightSibling(thenStatements.get(0));
+    thenStatements.get(thenStatements.size()-1).setRightSibling(elseStatements.get(0));
   }
 }

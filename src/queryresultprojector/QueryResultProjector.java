@@ -4,7 +4,7 @@ import pkb.ast.abstraction.ASTNode;
 import queryprocessor.evaluator.EvaluationResult;
 import queryprocessor.evaluator.PartialResult;
 import queryprocessor.preprocessor.Keyword;
-import queryprocessor.preprocessor.Synonym;
+import queryprocessor.preprocessor.synonyms.Synonym;
 import utils.Pair;
 
 import java.util.*;

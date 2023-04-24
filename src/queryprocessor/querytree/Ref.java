@@ -1,7 +1,7 @@
 package queryprocessor.querytree;
 
 import pkb.ast.abstraction.StatementNode;
-import queryprocessor.preprocessor.Synonym;
+import queryprocessor.preprocessor.synonyms.Synonym;
 
 import java.util.function.Function;
 

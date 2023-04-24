@@ -1,6 +1,10 @@
 package queryprocessor.preprocessor;
 
 
+import queryprocessor.preprocessor.synonyms.NamedProcedureSynonym;
+import queryprocessor.preprocessor.synonyms.NamedVariableSynonym;
+import queryprocessor.preprocessor.synonyms.Synonym;
+
 public class ArgumentTypeDeducer
 {
     public Synonym<?> deduce(Keyword relType, String arg, int argN) {

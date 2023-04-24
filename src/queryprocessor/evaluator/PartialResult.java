@@ -2,7 +2,7 @@ package queryprocessor.evaluator;
 
 import pkb.ast.abstraction.ASTNode;
 import queryprocessor.evaluator.abstraction.PartialResultAbstract;
-import queryprocessor.preprocessor.Synonym;
+import queryprocessor.preprocessor.synonyms.Synonym;
 import utils.Pair;
 
 import java.util.Set;

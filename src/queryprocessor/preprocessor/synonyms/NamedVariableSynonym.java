@@ -1,7 +1,9 @@
-package queryprocessor.preprocessor;
+package queryprocessor.preprocessor.synonyms;
 
 import pkb.ast.VariableNode;
 import pkb.ast.abstraction.ASTNode;
+import queryprocessor.preprocessor.Keyword;
+import queryprocessor.preprocessor.synonyms.Synonym;
 
 public class NamedVariableSynonym extends Synonym<VariableNode>
 {

@@ -1,7 +1,9 @@
-package queryprocessor.preprocessor;
+package queryprocessor.preprocessor.synonyms;
 
 import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.StatementNode;
+import queryprocessor.preprocessor.Keyword;
+import queryprocessor.preprocessor.synonyms.Synonym;
 
 public class StatementIdSynonym extends Synonym<StatementNode> {
 

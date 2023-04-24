@@ -1,7 +1,7 @@
 package queryprocessor.querytree;
 
 import queryprocessor.preprocessor.Keyword;
-import queryprocessor.preprocessor.Synonym;
+import queryprocessor.preprocessor.synonyms.Synonym;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -5,14 +5,13 @@ import pkb.ProgramKnowledgeBaseAPI;
 import queryprocessor.evaluator.abstraction.EvaluationEngine;
 import queryprocessor.evaluator.abstraction.QueryEvaluator;
 import queryprocessor.preprocessor.Keyword;
-import queryprocessor.preprocessor.Synonym;
+import queryprocessor.preprocessor.synonyms.Synonym;
 import queryprocessor.querytree.ConditionNode;
 import queryprocessor.querytree.QueryTree;
 import queryprocessor.querytree.RelationshipRef;
 import queryprocessor.querytree.ResNode;
 import utils.Pair;
 
-import java.security.Key;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;

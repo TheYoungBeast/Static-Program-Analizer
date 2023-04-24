@@ -2,7 +2,7 @@ package queryprocessor.querytree;
 
 import pkb.ast.abstraction.ASTNode;
 import queryprocessor.preprocessor.Keyword;
-import queryprocessor.preprocessor.SynonymFactory;
+import queryprocessor.preprocessor.synonyms.SynonymFactory;
 
 import java.util.function.Function;
 

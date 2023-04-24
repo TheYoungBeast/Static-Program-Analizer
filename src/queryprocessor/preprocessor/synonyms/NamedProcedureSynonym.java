@@ -1,7 +1,9 @@
-package queryprocessor.preprocessor;
+package queryprocessor.preprocessor.synonyms;
 
 import pkb.ast.ProcedureNode;
 import pkb.ast.abstraction.ASTNode;
+import queryprocessor.preprocessor.Keyword;
+import queryprocessor.preprocessor.synonyms.Synonym;
 
 public class NamedProcedureSynonym extends Synonym<ProcedureNode>
 {

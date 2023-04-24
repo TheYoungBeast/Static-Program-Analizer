@@ -1,7 +1,7 @@
 package queryprocessor.evaluator;
 
 import pkb.ast.abstraction.ASTNode;
-import queryprocessor.preprocessor.Synonym;
+import queryprocessor.preprocessor.synonyms.Synonym;
 
 import java.util.List;
 import java.util.Map;

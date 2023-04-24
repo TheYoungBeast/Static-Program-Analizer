@@ -1,6 +1,6 @@
 package queryprocessor.querytree;
 
-import queryprocessor.preprocessor.Synonym;
+import queryprocessor.preprocessor.synonyms.Synonym;
 
 public class AttrRef extends QTNode
 {

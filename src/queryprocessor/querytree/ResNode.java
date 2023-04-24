@@ -5,7 +5,7 @@ import pkb.ast.ProcedureNode;
 import pkb.ast.VariableNode;
 import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.StatementNode;
-import queryprocessor.preprocessor.Synonym;
+import queryprocessor.preprocessor.synonyms.Synonym;
 
 import java.util.function.Function;
 
