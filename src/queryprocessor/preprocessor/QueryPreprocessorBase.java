@@ -131,19 +131,26 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         {
             var argsMatcher = Pattern.compile(Keyword.REL_ARGS.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query).region(start, end);
 
+            var test = query.substring(start, end);
             if(!argsMatcher.find())
                 throw new MissingArgumentException(relType.getName(), 0, query);
 
             var args = argsMatcher.group().split(",");
 
             var arguments = new ArrayList<Synonym<?>>();
+            var argN = 0;
             for (var arg: args) {
+                argN++;
+                arg = arg.trim();
 
                 Synonym<?> synonym;
                 if(arg.contains("\"")) {
+                    var td = new ArgumentTypeDeducer();
                     arg = arg.replaceAll("\"", "").trim();
-                    synonym = new NamedVariableSynonym(arg);
+                    synonym = td.deduce(relType, arg, argN);
                 }
+                else if(isNumeric(arg))
+                    synonym = new StatementIdSynonym(arg);
                 else
                     synonym = findSynonym(arg.trim());
 
@@ -165,6 +172,14 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                 results.forEach(matchResult -> parsingProgress.setParsed(matchResult.start(), matchResult.end()));
 
             return results.size();
+        }
+
+        private boolean isNumeric(String strNum) {
+            final Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
+            if (strNum == null)
+                return false;
+
+            return pattern.matcher(strNum).matches();
         }
     }
 
