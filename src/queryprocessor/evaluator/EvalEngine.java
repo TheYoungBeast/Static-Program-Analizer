@@ -7,12 +7,10 @@ import pkb.ast.abstraction.StatementNode;
 import queryprocessor.evaluator.abstraction.EvaluationEngine;
 import utils.Pair;
 
-
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
-import java.util.stream.Collectors;
+
 
 public class EvalEngine implements EvaluationEngine
 {
@@ -83,7 +81,6 @@ public class EvalEngine implements EvaluationEngine
             for (var variable: variables) {
                 if(modifies.contains(variable)) {
                     pairSet.add(new Pair<>(statement, variable));
-                    break;
                 }
             }
         }

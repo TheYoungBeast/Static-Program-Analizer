@@ -26,7 +26,7 @@ import queryresultprojector.QueryResultProjector;
 
 class QoS {
     public static final boolean verbose = false;
-    public static final boolean printStackTree = true;
+    public static final boolean printStackTree = false;
 }
 
 public class Main {
