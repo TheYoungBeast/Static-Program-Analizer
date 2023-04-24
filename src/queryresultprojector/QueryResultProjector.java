@@ -11,6 +11,7 @@ import java.util.*;
 
 public class QueryResultProjector
 {
+    private final static String NoResultMsg = "none";
     private EvaluationResult evaluationResult;
 
     public void setEvaluationResult(EvaluationResult result) {
@@ -18,8 +19,8 @@ public class QueryResultProjector
     }
 
     public String format() {
-        if(evaluationResult == null) {
-            return "None";
+        if(evaluationResult == null || evaluationResult.getPartialResults().isEmpty()) {
+            return NoResultMsg;
         }
 
         var builder = new StringBuilder();
@@ -57,28 +58,6 @@ public class QueryResultProjector
 
 
             return builder.toString();
-        }
-
-        var maxSize = 0;
-        var combinations = partialResults.isEmpty() ? 0 : 1;
-        for (var partialSet: partialResults) {
-            boolean valid = false;
-            for (var synonym: synonyms) {
-                if(!partialSet.containsKey(synonym))
-                    continue;
-
-                valid = true;
-                break;
-            }
-
-            if(!valid)
-                continue;
-
-            var set = partialSet.getValue();
-            if(set.size() > maxSize)
-                maxSize = set.size();
-
-            combinations *= set.size();
         }
 
         List<List<ASTNode>> results = new ArrayList<>();

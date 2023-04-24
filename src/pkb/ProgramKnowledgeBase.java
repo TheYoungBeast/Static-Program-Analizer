@@ -91,6 +91,11 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
     return uses.getOrDefault(s, Collections.emptySet());
   }
 
+  @Override
+  public Set<ProcedureNode> getCalls(ASTNode p) {
+    return calls.getOrDefault(p, Collections.emptySet());
+  }
+
   public void addCalls(ASTNode s, ProcedureNode p) {
     calls.computeIfAbsent(s, k -> new LinkedHashSet<>()).add(p);
   }

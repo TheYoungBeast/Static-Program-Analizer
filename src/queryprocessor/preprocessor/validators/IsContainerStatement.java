@@ -13,6 +13,7 @@ public class IsContainerStatement implements Validator
     public IsContainerStatement(ArgNode arg) {
         var containerType = "Container-type Statement";
         var list = new ArrayList<Validator>(List.of(
+                new ArgTypeValidator(arg, Keyword.STATEMENT, containerType),
                 new ArgTypeValidator(arg, Keyword.WHILE, containerType),
                 new ArgTypeValidator(arg, Keyword.IF, containerType),
                 new ArgTypeValidator(arg, Keyword.PROCEDURE, containerType)

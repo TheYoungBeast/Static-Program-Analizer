@@ -19,6 +19,8 @@ public interface ProgramKnowledgeBaseAPI {
 
     Set<VariableNode> getUses(ASTNode s);
 
+    Set<ProcedureNode> getCalls(ASTNode p);
+
     Set<VariableNode> getVarTable();
 
     Set<ConstantNode> getConstTable();
