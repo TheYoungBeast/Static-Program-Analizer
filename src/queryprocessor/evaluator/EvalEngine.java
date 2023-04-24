@@ -108,7 +108,7 @@ public class EvalEngine implements EvaluationEngine
         Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
 
         for (var caller: callingCandidate) {
-            Set<CallNode> calledProcedures = null;
+            Set<CallNode> calledProcedures = new HashSet<>(); // Tutaj ma byc wstawka z PKB
 
             for (var called: beingCalledCandidate) {
                 if(calledProcedures.contains(called))
