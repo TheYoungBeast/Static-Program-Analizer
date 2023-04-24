@@ -1,3 +1,4 @@
+import designextractor.DesignExtractor;
 import pkb.cfg.ControlFlowGraph;
 import frontend.lexer.Lexer;
 import frontend.lexer.Token;
@@ -40,6 +41,7 @@ public class Main {
         List<Token> tokens = lexer.tokenize(sourceFile);
         ProgramKnowledgeBase pkb = new ProgramKnowledgeBase();
         Parser.parse(tokens, pkb);
+        DesignExtractor.extract(pkb);
         ControlFlowGraph.createCfg(pkb);
         if(QoS.verbose)
             System.out.println(pkb.getAST());
