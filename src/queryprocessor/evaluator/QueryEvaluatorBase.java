@@ -6,10 +6,7 @@ import queryprocessor.evaluator.abstraction.EvaluationEngine;
 import queryprocessor.evaluator.abstraction.QueryEvaluator;
 import queryprocessor.preprocessor.Keyword;
 import queryprocessor.preprocessor.synonyms.Synonym;
-import queryprocessor.querytree.ConditionNode;
-import queryprocessor.querytree.QueryTree;
-import queryprocessor.querytree.RelationshipRef;
-import queryprocessor.querytree.ResNode;
+import queryprocessor.querytree.*;
 import utils.Pair;
 
 import java.util.*;
@@ -69,19 +66,25 @@ public class QueryEvaluatorBase implements QueryEvaluator
             resultExtractors.computeIfAbsent(s, e -> resNode.getExtractor());
         }
 
+        var refRefConditions = new HashMap<Pair<Synonym<?>, Synonym<?>>, LinkedHashSet<Pair<ASTNode, ASTNode>>>();
         if(queryTree.getWithNode() != null)
         {
-            var conditions = new ArrayList<ConditionNode>();
-            var condNode =  queryTree.getWithNode().getFirstChild();
+            var conditionsPair = new ArrayList<Pair<ConditionNode, Boolean>>();
+            var condNode = (ConditionNode) queryTree.getWithNode().getFirstChild();
 
             while (condNode != null) {
-                if(condNode instanceof ConditionNode)
-                    conditions.add((ConditionNode) condNode);
+                if(condNode instanceof ConditionRefRef)
+                    conditionsPair.add(new Pair<>(condNode, true)); // conditions such as x.procName = y.procName
+                else
+                    conditionsPair.add(new Pair<>(condNode, false)); // conditions such as x.procName = "Procedure"
 
-                condNode = condNode.getRightSibling();
+                condNode = (ConditionNode) condNode.getRightSibling();
             }
 
-            for (var condition: conditions) {
+            var doubleRefConditions = conditionsPair.stream().filter(Pair::getSecond).map(p -> (ConditionRefRef) p.getFirst()).collect(Collectors.toList());
+            var refValueConditions = conditionsPair.stream().filter(p -> !p.getSecond()).map(p -> (ConditionRefValue) p.getFirst()).collect(Collectors.toList());
+
+            for (var condition: refValueConditions) {
                 var wResults = resultLUT.computeIfAbsent(condition.getAttrRef().getSynonym(),
                         l -> getMatchingNodes(pkb.getAST(), condition.getAttrRef().getSynonym()));
 
@@ -90,6 +93,31 @@ public class QueryEvaluatorBase implements QueryEvaluator
                         .collect(Collectors.toList());
 
                 resultLUT.put(condition.getAttrRef().getSynonym(), new HashSet<>(cResult));
+            }
+
+            for (var condition: doubleRefConditions) {
+                var pair = condition.getAttrRefs();
+                var ref1 = pair.getFirst();
+                var ref2 = pair.getSecond();
+
+                var ref1Nodes = resultLUT.computeIfAbsent(ref1.getSynonym(), l -> getMatchingNodes(pkb.getAST(), ref1.getSynonym()));
+                var ref2Nodes = resultLUT.computeIfAbsent(ref2.getSynonym(), l -> getMatchingNodes(pkb.getAST(), ref2.getSynonym()));
+
+                Set<ASTNode> filteredRefs1 = new HashSet<>();
+                Set<ASTNode> filteredRefs2 = new HashSet<>();
+                for (var ref1Node: ref1Nodes) {
+                    for (var ref2Node: ref2Nodes) {
+                        var refPair = new Pair<>(ref1Node, ref2Node);
+                        if(condition.attrCompare(refPair)) {
+                            filteredRefs1.add(ref1Node);
+                            filteredRefs2.add(ref2Node);
+                            refRefConditions.computeIfAbsent(new Pair<>(ref1.getSynonym(), ref2.getSynonym()), l -> new LinkedHashSet<>()).add(refPair);
+                        }
+                    }
+                }
+
+                resultLUT.put(ref1.getSynonym(), filteredRefs1);
+                resultLUT.put(ref2.getSynonym(), filteredRefs2);
             }
         }
 
@@ -199,6 +227,17 @@ public class QueryEvaluatorBase implements QueryEvaluator
                 PartialResult pr = new PartialResult(keyPair, valueList);
                 partialResults.add(pr);
             }
+        }
+
+        // Stworz rezultaty cząstkowe dla wyników warunków gdzie występuje porównanie pomiędzy dwoma referencjami synonimu
+        // Klucz podwójnu - <Synonim pierwszej referencji, Synonim drugiej referencji>
+        // Zestaw zawiera pary dla których spełniony jest warunek (przykład: x1.procName = y2.procName);
+        for (var entry: refRefConditions.entrySet()) {
+            var keyPair = entry.getKey();
+            var valueSet = entry.getValue();
+
+            PartialResult pr = new PartialResult(keyPair, valueSet);
+            partialResults.add(pr);
         }
 
         // Stworz rezultaty cząstkowe dla synonimow, dla których nie została zdefiniowana żadna relacja

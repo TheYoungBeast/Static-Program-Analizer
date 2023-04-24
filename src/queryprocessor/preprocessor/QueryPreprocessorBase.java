@@ -203,38 +203,56 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
             for (var match: matchResults) {
                 var result = match.group();
-                var pair = extractAttributes(result);
-                conditions.add(new ConditionNode(pair.getFirst(), pair.getSecond()));
+                conditions.addAll(extractAttributes(result));
                 parsingProgress.setParsed(match.start(), match.end());
             }
 
             return conditions;
         }
 
-        public Pair<AttrRef, AttrValue> extractAttributes(String group) throws InvalidQueryException {
-            var cond = Arrays.stream(group.split("=")).map(String::trim).collect(Collectors.toList());
-            cond.set(0, cond.get(0).replaceAll(Keyword.WITH.getRegExpr(), "").trim());
+        public List<ConditionNode> extractAttributes(String group) throws InvalidQueryException {
+            var conditionPart = Arrays.stream(group.split("=")).map(String::trim).collect(Collectors.toList());
+            conditionPart.set(0, conditionPart.get(0).replaceAll(Keyword.WITH.getRegExpr(), "").trim());
 
-            var res = Arrays.stream(cond.get(0).split("\\.")).map(String::trim).collect(Collectors.toList());
+            List<ConditionNode> conditionNodes = new ArrayList<>();
+            List<Pair<Synonym<?>, AttrName>> refs = new ArrayList<>();
 
-            var synonym = findSynonym(res.get(0));
-            var attr = findAttrName(res.get(1));
+            for (var c: conditionPart) {
+                if(!c.contains("."))
+                    continue;
 
-            if(synonym == null)
-                throw new InvalidQueryException(String.format("Unrecognized synonym %s", res.get(0)), group);
+                var attrs = Arrays.stream(c.split("\\.")).map(String::trim).collect(Collectors.toList());
 
-            if(attr == null)
-                throw new InvalidQueryException(String.format("Unrecognized attribute %s", res.get(1)), group);
+                var synonym = findSynonym(attrs.get(0));
+                var attr = findAttrName(attrs.get(1));
 
-            var value = cond.get(1);
+                if(synonym == null)
+                    throw new InvalidQueryException(String.format("Unrecognized synonym %s", attrs.get(0)), group);
 
-            if(value.contains("\""))
-                value = value.replaceAll("\"", "");
-            else if (value.contains("\\.")) {
+                if(attr == null)
+                    throw new InvalidQueryException(String.format("Unrecognized attribute %s", attrs.get(1)), group);
 
+                refs.add(new Pair<>(synonym, attr));
             }
 
-            return new Pair<>(new AttrRef(synonym, attr), new AttrValue(value));
+            if(refs.size() == 1) {
+                var value = conditionPart.get(1);
+
+                if (value.contains("\""))
+                    value = value.replaceAll("\"", "");
+
+                var pair = refs.get(0);
+                var attrRef = new AttrRef(pair.getFirst(), pair.getSecond());
+                var attrVal = new AttrValue(value);
+                conditionNodes.add(new ConditionRefValue(attrRef, attrVal));
+            }
+            else {
+                var ref1 = new AttrRef(refs.get(0).getFirst(), refs.get(0).getSecond());
+                var ref2 = new AttrRef(refs.get(1).getFirst(), refs.get(1).getSecond());
+                conditionNodes.add(new ConditionRefRef(ref1, ref2));
+            }
+
+            return conditionNodes;
         }
     }
 
