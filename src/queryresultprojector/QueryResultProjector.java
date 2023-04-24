@@ -48,14 +48,11 @@ public class QueryResultProjector
         }
 
         if(synonyms.stream().anyMatch(s -> s.getKeyword().equals(Keyword.BOOLEAN))) {
-            builder.append("1 result(s): \n");
-
             var empty = partialResults.stream().anyMatch(pr -> pr.getValue().isEmpty()) || partialResults.isEmpty();
             if(empty)
-                builder.append("False");
+                builder.append("false");
             else
-                builder.append("True");
-
+                builder.append("true");
 
             return builder.toString();
         }
