@@ -9,9 +9,19 @@ import pkb.ast.abstraction.StatementNode;
 
 public class ControlFlowGraph
 {
-    public static CfgNode build(ProcedureNode procedureNode) {
+    private final CfgNode graph;
+
+    public ControlFlowGraph(CfgNode node) {
+        graph = node;
+    }
+
+    public boolean pathExists(StatementNode node1, StatementNode node2) {
+        return false;
+    }
+
+    public static CfgNode build(ProcedureNode procedureNode)
+    {
         var cfg = new CfgNode();
-        cfg.astNode = procedureNode.getFirstChild();
         var last = generateCfg(procedureNode.getFirstChild(), cfg);
         var end = new EndProcedureNode();
         //last.right = end;
@@ -20,7 +30,8 @@ public class ControlFlowGraph
         return cfg;
     }
 
-    private static CfgNode generateCfg(ASTNode head, CfgNode cfgHead) {
+    private static CfgNode generateCfg(ASTNode head, CfgNode cfgHead)
+    {
         CfgNode lastCfgNode = cfgHead;
         var aNode = head;
 
@@ -28,49 +39,49 @@ public class ControlFlowGraph
         {
             if (aNode instanceof WhileNode) {
                 var whileNode = new CfgNode();
-                lastCfgNode.left = whileNode;
-                whileNode.astNode = aNode;
+                lastCfgNode.setLeft(whileNode);
+                whileNode.setAstNode(aNode);
                 var stmtList = aNode.getFirstChild().getRightSibling(); // WhileNode
                                                                                 //      |
                                                                                 //   condition ——> stmtList
-                whileNode.left = new CfgNode();
+                whileNode.setLeft(new CfgNode());
                 lastCfgNode = generateCfg(stmtList.getFirstChild(), whileNode);
-                lastCfgNode.left = whileNode;
-                whileNode.right = new CfgNode();
-                whileNode.right.astNode = aNode.getRightSibling();
+                lastCfgNode.setLeft(whileNode);
+                whileNode.setRight(new CfgNode());
+                whileNode.getRight().setAstNode(aNode.getRightSibling());
                 aNode = aNode.getRightSibling();
-                lastCfgNode = whileNode.right;
+                lastCfgNode = whileNode.getRight();
             }
             else if(aNode instanceof IfNode) {
-                var then = aNode.getFirstChild().getRightSibling();
-                var elsee = then.getRightSibling();
-
+                var then = aNode.getFirstChild().getRightSibling(); //   if
+                var elsee = then.getRightSibling();             //    /  |  \
+                                                                        //  var  then  else
                 var ifNode = new CfgNode();
-                ifNode.astNode = aNode;
-                lastCfgNode.left = ifNode;
+                ifNode.setAstNode(aNode);
+                lastCfgNode.setLeft(ifNode);
 
                 var thenNode = new CfgNode();
-                thenNode.astNode = then;
-                ifNode.left = thenNode;
+                thenNode.setAstNode(then.getFirstChild());
+                ifNode.setLeft(thenNode);
                 var lastThenStmt = generateCfg(then.getFirstChild(), thenNode);
 
                 var endIfNode = new EndIfNode();
-                lastThenStmt.right = endIfNode;
+                lastThenStmt.setRight(endIfNode);
 
                 if(elsee != null) {
                     var elseNode = new CfgNode();
-                    elseNode.astNode = elsee;
-                    ifNode.right = elseNode;
+                    elseNode.setAstNode(elsee.getFirstChild());
+                    ifNode.setRight(elseNode);
                     var lastElseStmt = generateCfg(elsee.getFirstChild(), elseNode);
-                    lastElseStmt.left = endIfNode;
+                    lastElseStmt.setLeft(endIfNode);
                 }
 
                 lastCfgNode = endIfNode;
             }
             else if(aNode instanceof StatementNode) {
                 var cfg = new CfgNode();
-                lastCfgNode.left = cfg;
-                cfg.astNode = aNode;
+                lastCfgNode.setLeft(cfg);
+                cfg.setAstNode(aNode);
                 lastCfgNode = cfg;
             }
 
