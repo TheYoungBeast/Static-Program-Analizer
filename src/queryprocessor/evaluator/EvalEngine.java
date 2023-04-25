@@ -152,7 +152,23 @@ public class EvalEngine implements EvaluationEngine
     }
 
     @Override
-    public Set<Pair<ASTNode, ASTNode>> evaluateNextRel(Set<ASTNode> next1, Set<ASTNode> next2) {
+    public Set<Pair<ASTNode, ASTNode>> evaluateNextRel(Set<ASTNode> next1, Set<ASTNode> next2)
+    {
+        Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
+
+        for (var progLine: next1) {
+            var nextProgLine = progLine.getRightSibling();
+
+            if(nextProgLine != null && next2.contains(nextProgLine)) {
+                pairSet.add(new Pair<>(progLine, nextProgLine));
+            }
+        }
+
+        return pairSet;
+    }
+
+    @Override
+    public Set<Pair<ASTNode, ASTNode>> evaluateNextTransitiveRel(Set<ASTNode> precedingProgLine, Set<ASTNode> followingProgLine) {
         return Collections.emptySet();
     }
 

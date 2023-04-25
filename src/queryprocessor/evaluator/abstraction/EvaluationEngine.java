@@ -63,7 +63,21 @@ public interface EvaluationEngine
      */
     Set<Pair<ASTNode, ASTNode>> evaluateFollowsTransitiveRel(Set<ASTNode> precedingCandidate, Set<ASTNode> followingCandidate);
 
-    Set<Pair<ASTNode, ASTNode>> evaluateNextRel(Set<ASTNode> next1, Set<ASTNode> next2);
+    /**
+     * Evaluation method for Next relationship
+     * @param precedingProgLine List of ASTNodes (Statements) (candidates that directly precede another statements)
+     * @param followingProgLine List of ASTNodes (Statements) (candidates that directly follow another statements)
+     * @return List of pairs of nodes in Next relationship
+     */
+    Set<Pair<ASTNode, ASTNode>> evaluateNextRel(Set<ASTNode> precedingProgLine, Set<ASTNode> followingProgLine);
+
+    /**
+     * Evaluation method for transitive Next relationship
+     * @param precedingProgLine List of ASTNodes (Statements) (candidates - program lines)
+     * @param followingProgLine List of ASTNodes (Statements) (candidates - program lines)
+     * @return List of pairs of nodes in transitive Next relationship
+     */
+    Set<Pair<ASTNode, ASTNode>> evaluateNextTransitiveRel(Set<ASTNode> precedingProgLine, Set<ASTNode> followingProgLine);
 
     Set<Pair<ASTNode, ASTNode>> evaluateAffectRel(Set<ASTNode> set1, Set<ASTNode> set2);
 }
