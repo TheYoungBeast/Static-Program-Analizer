@@ -67,14 +67,12 @@ public class Main {
             }
         }
 
-
         for (var procedure: procedures)
         {
            controlFlowGraphs.add(cfg.ControlFlowGraph.build((ProcedureNode)procedure));
         }
 
         var cfg1 = controlFlowGraphs.get(0);
-
 
         Class breakpoint = null;
 

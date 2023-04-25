@@ -30,7 +30,7 @@ public class QueryResultProjector
         var partialResults = evaluationResult.getPartialResults();
         var map  = new LinkedHashMap<Synonym<?>, PartialResult>();
 
-        var relationshipsForKey = new HashMap<Synonym<?>, Pair<Synonym<?>, Set<Pair<ASTNode, ASTNode>>>>();
+        var relationshipsForKey = new HashMap<Pair<Synonym<?>, Synonym<?>>, Set<Pair<ASTNode, ASTNode>>>();
 
         for (var synonym: synonyms) {
             for (var pr: partialResults) {
@@ -39,10 +39,7 @@ public class QueryResultProjector
 
                 var pair = pr.getKeyPair();
                 if(pair != null) {
-                    var firstKey = pair.getFirst();
-                    var secondKey = pair.getSecond();
-
-                    relationshipsForKey.putIfAbsent(firstKey, new Pair<>(secondKey, (Set<Pair<ASTNode, ASTNode>>) pr.getValue()));
+                    relationshipsForKey.putIfAbsent(pair, (Set<Pair<ASTNode, ASTNode>>) pr.getValue());
                 }
             }
         }
@@ -82,39 +79,38 @@ public class QueryResultProjector
         }
 
         var filtered2 = relExists ? new ArrayList<List<ASTNode>>() : results;
+        var resultValidity = new boolean[results.size()];
 
-        for (int i = 0; i < synonymsInRel.length; i++) {
-            if(!synonymsInRel[i])
-                continue;
+        for (int i = 0; i < results.size(); i++)
+        {
+            var result = results.get(i);
+            var valid = 0;
+            for (var entry : relationshipsForKey.entrySet()) {
+                var pair = entry.getKey();
 
-            if(synonymsChecked[i])
-                continue;
+                var synonym = pair.getFirst();
+                var synonymPos = synonyms.indexOf(synonym);
+                var value = entry.getValue();
+                var secondSynonym = pair.getSecond();
+                var secondSynonymPos = synonyms.indexOf(secondSynonym);
 
-            if(!relationshipsForKey.containsKey(synonyms.get(i)))
-                continue;
+               if(secondSynonymPos == -1 || synonymPos == -1) {
+                    resultValidity[i] = true;
+                    continue;
+                }
 
-            var synonym = synonyms.get(i);
-            var synonymPos = synonyms.indexOf(synonym);
-            var value = relationshipsForKey.get(synonym);
-            var secondSynonym = value.getFirst();
-            var secondSynonymPos = synonyms.indexOf(secondSynonym);
-            var allowedNodes = value.getSecond();
+                //synonymsChecked[synonymPos] = true;
+                //synonymsChecked[secondSynonymPos] = true;
 
-            if(secondSynonymPos == -1) {
-                filtered2.addAll(results);
-                break;
-            }
-
-            synonymsChecked[synonymPos] = true;
-            synonymsChecked[secondSynonymPos] = true;
-
-            for (var result: results) {
                 var node1 = result.get(synonymPos);
                 var node2 = result.get(secondSynonymPos);
 
-                if(allowedNodes.contains(new Pair<>(node1, node2)))
-                    filtered2.add(result);
+                if (value.contains(new Pair<>(node1, node2)))
+                    valid++;
             }
+
+            if(valid == relationshipsForKey.keySet().size())
+                resultValidity[i] = true;
         }
 
         results = filtered2;
@@ -122,8 +118,15 @@ public class QueryResultProjector
         //builder.append(String.format("%d result(s): \n", results.size()));
 
         var extractors = new ArrayList<>(extractorMap.values());
+        var printed = 0;
         for(int p = 0; p < results.size(); p++)
         {
+            if(!resultValidity[p])
+                continue;
+
+            if(printed > 0)
+                builder.append(", ");
+
             var list = results.get(p);
 
             for(int i = 0; i < list.size(); i++)
@@ -137,8 +140,7 @@ public class QueryResultProjector
                     builder.append(" ");
             }
 
-            if(p < results.size()-1)
-                builder.append(",");
+            printed++;
         }
 
         return builder.toString();
