@@ -140,6 +140,12 @@ public class QueryEvaluatorBase implements QueryEvaluator
                 relNode = relNode.getRightSibling();
             }
 
+            // Sortowanie malejące relacji względem ich priorytetu określającego nakład obliczeniowy
+            // Relacje, które są łatwe i szybkie do obliczenia mają najwyższy priorytet i są obliczane jako pierwsze
+            // Ograniczając tym pulę kandydatów dla których mogą zajść kolejne relacje
+            // Zmiejsza to czas potrzebny na obliczenie kolejnych, "cięższych" relacji
+            relationships.sort(Comparator.comparing(r -> r.getComputingPriority().getPriority(), Comparator.reverseOrder()));
+
             // Dla każdej relacji załaduj do Look Up Table (LUT) opowiadające typy węzłów.
             // Każdy synonim zawiera w sobie opowiadający mu typ węzła drzewa AST oraz posiada komparator
             for (var relRef: relationships) {

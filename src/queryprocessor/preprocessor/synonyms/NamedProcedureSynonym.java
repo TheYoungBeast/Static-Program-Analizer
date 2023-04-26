@@ -3,9 +3,8 @@ package queryprocessor.preprocessor.synonyms;
 import pkb.ast.ProcedureNode;
 import pkb.ast.abstraction.ASTNode;
 import queryprocessor.preprocessor.Keyword;
-import queryprocessor.preprocessor.synonyms.Synonym;
 
-public class NamedProcedureSynonym extends Synonym<ProcedureNode>
+public class NamedProcedureSynonym extends NamedSynonym<ProcedureNode>
 {
     public NamedProcedureSynonym(String identifier) {
         super(identifier, Keyword.PROCEDURE, ProcedureNode.class);
