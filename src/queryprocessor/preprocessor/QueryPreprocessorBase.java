@@ -5,18 +5,20 @@ import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import pkb.ast.abstraction.ASTNode;
 import queryprocessor.preprocessor.exceptions.InvalidQueryException;
 import queryprocessor.preprocessor.exceptions.MissingArgumentException;
+import queryprocessor.preprocessor.extractors.ConditionExtractor;
+import queryprocessor.preprocessor.extractors.PatternExtractor;
+import queryprocessor.preprocessor.extractors.RelationshipExtractor;
+import queryprocessor.preprocessor.extractors.ResultSynonymExtractor;
 import queryprocessor.preprocessor.synonyms.*;
 import queryprocessor.preprocessor.validators.ValidatorFactory;
 import queryprocessor.querytree.*;
-import utils.Pair;
 
 public class QueryPreprocessorBase implements QueryPreprocessor
 {
     private final HashSet<Synonym<?>> declaredSynonyms = new HashSet<>();
-    private final static HashSet<Keyword> synonymsKeywords = new HashSet<>(
+    public final static HashSet<Keyword> synonymsKeywords = new HashSet<>(
             Arrays.asList(
                     Keyword.WHILE,
                     Keyword.ASSIGN,
@@ -28,7 +30,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                     Keyword.CONSTANT,
                     Keyword.VARIABLE)
     );
-    private final static HashSet<Keyword> relationshipsKeywords = new HashSet<>(
+    public final static HashSet<Keyword> relationshipsKeywords = new HashSet<>(
             Arrays.asList(
                     Keyword.FOLLOWS, Keyword.T_FOLLOWS,
                     Keyword.PARENT, Keyword.T_PARENT,
@@ -41,278 +43,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
     private final static String querySeparator = ";";
 
-    private class ResultSynonymExtractor {
-        private final ParsingProgress parsingProgress;
-
-        public ResultSynonymExtractor(ParsingProgress parsingProgress) {
-            this.parsingProgress = parsingProgress;
-        }
-
-        public List<ResNode> extractSynonyms(String query) throws InvalidQueryException {
-            var resultNodes = new ArrayList<ResNode>();
-
-            var matcher = Pattern.compile(Keyword.SYNONYMS.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
-
-            if(!matcher.find())
-                return Collections.emptyList();
-
-            var group = matcher.group().trim();
-
-            parsingProgress.setParsed(matcher.toMatchResult().start(), matcher.toMatchResult().end());
-
-            List<String> identifiers = new ArrayList<>();
-            if(group.contains(",")) {
-                if(!group.matches(Keyword.RESULT_TUPLE.getRegExpr()))
-                    throw new InvalidQueryException("Invalid result tuple format. Expected e.g. <res1, res2, ...>", group);
-
-                var resTuple = group.replaceAll("[<>]", "");
-                identifiers = Arrays.stream(resTuple.split(",")).map(String::trim).collect(Collectors.toList());
-            }
-            else {
-                if(group.isBlank())
-                    return Collections.emptyList();
-
-                var booleanMatcher = Pattern.compile(Keyword.BOOLEAN.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(group);
-
-                if(booleanMatcher.find())
-                    resultNodes.add(new ResBooleanNode());
-                else
-                    identifiers.add(group.trim());
-            }
-
-            for (var id: identifiers) {
-                var synonym = findSynonym(id);
-                if(synonym == null)
-                    throw new InvalidQueryException(String.format("Undeclared synonym %s in the select clause", id),  group);
-
-                resultNodes.add(new ResNode(synonym));
-            }
-
-            return resultNodes;
-        }
-    }
-
-    private class RelationshipExtractor
-    {
-        private final ParsingProgress parsingProgress;
-
-        public RelationshipExtractor(ParsingProgress parsingProgress) {
-            this.parsingProgress = parsingProgress;
-        }
-
-        public List<RelationshipRef> extractRelationships(String query) throws InvalidQueryException, MissingArgumentException
-        {
-            var relationships = new ArrayList<RelationshipRef>();
-
-            var start = query.length();
-            var end = 0;
-            for (Keyword rel: relationshipsKeywords) {
-                var relMatcher = Pattern.compile(rel.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
-                var matchResults = relMatcher.results().collect(Collectors.toList());
-
-                if(matchResults.isEmpty())
-                    continue;
-
-                for (var match: matchResults)
-                {
-                    if(match.start() < start)
-                        start = match.start();
-
-                    if(match.end() > end)
-                        end = match.end();
-
-                    var args = extractArguments(query, rel, match.start(), match.end());
-                    relationships.add(new RelationshipRef(rel, args));
-                    parsingProgress.setParsed(match.start(), match.end());
-                }
-            }
-
-            if(!relationships.isEmpty() && (relationships.size()-1) != getConcatenatorCount(query, start, end))
-                throw new InvalidQueryException("Missing 'and' concatenator in between relationships", query);
-
-            return relationships;
-        }
-
-        public List<Synonym<?>> extractArguments(String query, Keyword relType, int start, int end) throws MissingArgumentException, InvalidQueryException
-        {
-            var argsMatcher = Pattern.compile(Keyword.REL_ARGS.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query).region(start, end);
-
-            if(!argsMatcher.find())
-                throw new MissingArgumentException(relType.getName(), 0, query);
-
-            var args = argsMatcher.group().split(",");
-
-            var arguments = new ArrayList<Synonym<?>>();
-            var argN = 0;
-            for (var arg: args) {
-                argN++;
-                arg = arg.trim();
-
-                Synonym<?> synonym;
-                if(arg.contains("\"")) {
-                    var td = new ArgumentTypeDeducer();
-                    arg = arg.replaceAll("\"", "").trim();
-                    synonym = td.deduce(relType, arg, argN);
-                }
-                else if(isNumeric(arg))
-                    synonym = new StatementIdSynonym(arg);
-                else
-                    synonym = findSynonym(arg.trim());
-
-                if(synonym == null)
-                    throw new InvalidQueryException("Unrecognized parameter synonym", arg);
-
-                arguments.add(synonym);
-            }
-
-           return arguments;
-        }
-
-        public long getConcatenatorCount(String line, int start, int end)
-        {
-            var matcher = Pattern.compile(Keyword.AND.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(line).region(start, end);
-            var results = matcher.results().collect(Collectors.toList());
-
-            if(!results.isEmpty())
-                results.forEach(matchResult -> parsingProgress.setParsed(matchResult.start(), matchResult.end()));
-
-            return results.size();
-        }
-
-        private boolean isNumeric(String strNum) {
-            final Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
-            if (strNum == null)
-                return false;
-
-            return pattern.matcher(strNum).matches();
-        }
-    }
-
-    private class ConditionExtractor
-    {
-        private final ParsingProgress parsingProgress;
-
-        public ConditionExtractor(ParsingProgress parsingProgress) {
-            this.parsingProgress = parsingProgress;
-        }
-
-        public List<Condition> extractConditions(String query) throws InvalidQueryException
-        {
-            var conditions = new ArrayList<Condition>();
-
-            var matcher = Pattern.compile(Keyword.WITH_CLAUSE.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
-            var matchResults = matcher.results().collect(Collectors.toList());
-
-            for (var match: matchResults) {
-                var result = match.group();
-                conditions.addAll(extractAttributes(result));
-                parsingProgress.setParsed(match.start(), match.end());
-            }
-
-            return conditions;
-        }
-
-        public List<Condition> extractAttributes(String group) throws InvalidQueryException {
-            var conditionPart = Arrays.stream(group.split("=")).map(String::trim).collect(Collectors.toList());
-            conditionPart.set(0, conditionPart.get(0).replaceAll(Keyword.WITH.getRegExpr(), "").trim());
-
-            List<Condition> conditionNodes = new ArrayList<>();
-            List<Pair<Synonym<?>, AttrName>> refs = new ArrayList<>();
-
-            for (var c: conditionPart) {
-                if(!c.contains("."))
-                    continue;
-
-                var attrs = Arrays.stream(c.split("\\.")).map(String::trim).collect(Collectors.toList());
-
-                var synonym = findSynonym(attrs.get(0));
-                var attr = findAttrName(attrs.get(1));
-
-                if(synonym == null)
-                    throw new InvalidQueryException(String.format("Unrecognized synonym %s", attrs.get(0)), group);
-
-                if(attr == null)
-                    throw new InvalidQueryException(String.format("Unrecognized attribute %s", attrs.get(1)), group);
-
-                refs.add(new Pair<>(synonym, attr));
-            }
-
-            if(refs.size() == 1) {
-                var value = conditionPart.get(1);
-
-                if (value.contains("\""))
-                    value = value.replaceAll("\"", "");
-
-                var pair = refs.get(0);
-                var attrRef = new AttrRef(pair.getFirst(), pair.getSecond());
-                var attrVal = new AttrValue(value);
-                conditionNodes.add(new ConditionRefValue(attrRef, attrVal));
-            }
-            else {
-                var ref1 = new AttrRef(refs.get(0).getFirst(), refs.get(0).getSecond());
-                var ref2 = new AttrRef(refs.get(1).getFirst(), refs.get(1).getSecond());
-                conditionNodes.add(new ConditionRefRef(ref1, ref2));
-            }
-
-            return conditionNodes;
-        }
-    }
-
-    private class PatternExtractor {
-        private final ParsingProgress parsingProgress;
-
-        public PatternExtractor(ParsingProgress parsingProgress) {
-            this.parsingProgress = parsingProgress;
-        }
-
-        public List<ExpressionPattern> extractPatterns(String query) throws InvalidQueryException {
-            var patterns = new ArrayList<ExpressionPattern> ();
-
-            var matcher = Pattern.compile(Keyword.PATTERN_COND.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
-            var results = matcher.results().collect(Collectors.toList());
-
-            for (var matchResult: results) {
-                parsingProgress.setParsed(matchResult.start(), matchResult.end());
-
-                var group = matchResult.group().trim();
-
-                // they need to exist because regex guarantees it
-                var i1 = group.indexOf('(');
-                var i2 = group.indexOf(')');
-
-                var cond = group.substring(i1, i2);
-                var split = cond.split(",");
-                var leftHandExpStr = split[0].trim();
-                var rightHandExprStr = split[1].replaceAll(" ", "");
-
-                var synStr = group.substring(0, i1).trim();
-                var patternSynonym = findSynonym(synStr);
-
-                if(patternSynonym == null)
-                    throw new InvalidQueryException(String.format("Unrecognized synonym %s", synStr), group);
-
-                Synonym<?> leftHandExp = null;
-                if(leftHandExpStr.equals("_"))
-                    leftHandExp =  SynonymFactory.create(leftHandExpStr, Keyword.VARIABLE);
-                else {
-                    var matcher1 = Pattern.compile(Keyword.SYNONYM.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(leftHandExpStr);
-                    if(matcher1.find())
-                        leftHandExp = new NamedVariableSynonym(matcher1.group());
-                }
-
-                // tutaj dac metode parsujacą wyrazenie na drzewko
-                ASTNode tree = null;
-
-                boolean lookBehind = rightHandExprStr.contains("_\"");
-                boolean lookAhead = rightHandExprStr.contains("\"_");
-
-                patterns.add(new ExpressionPattern(patternSynonym, leftHandExp, tree, lookAhead, lookBehind));
-            }
-
-            return patterns;
-        }
-    }
-
+    @Override
     public QueryTree parseQuery(String query) throws InvalidQueryException, MissingArgumentException
     {
         if (query.length() == 0)
@@ -323,6 +54,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         return parseQuery(array);
     }
 
+    @Override
     public QueryTree parseQuery(String[] queryLines) throws InvalidQueryException, MissingArgumentException
     {
         if (queryLines.length == 0)
@@ -353,7 +85,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
             else
             {
                 //region SELECT CLAUSE
-                var rse = new ResultSynonymExtractor(progress);
+                var rse = new ResultSynonymExtractor(this, progress);
                 var resultSynonyms = rse.extractSynonyms(line);
 
                 if(resultSynonyms.isEmpty())
@@ -370,7 +102,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                 // region SUCH THAT
                 if(containsClause(Keyword.SUCH_THAT, line, progress))
                 {
-                    var re = new RelationshipExtractor(progress);
+                    var re = new RelationshipExtractor(this, progress);
                     var relationships = re.extractRelationships(line);
 
                     tree.createSuchThatNode();
@@ -392,7 +124,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                 //region WITH
                 if(containsClause(Keyword.WITH, line, progress))
                 {
-                    var ce = new ConditionExtractor(progress);
+                    var ce = new ConditionExtractor(this, progress);
                     var conditions = ce.extractConditions(line);
 
                     tree.createWithNode();
@@ -414,7 +146,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                 // region PATTERN
                 if(containsClause(Keyword.PATTERN, line, progress))
                 {
-                    var pe = new PatternExtractor(progress);
+                    var pe = new PatternExtractor(this, progress);
                     var patterns = pe.extractPatterns(line);
 
                     tree.createPatterNode();
@@ -489,30 +221,10 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         return res;
     }
 
-    @SuppressWarnings("unused")
-    private Keyword findRelationship(String relationship) {
-        for (var rel: relationshipsKeywords)
-        {
-            var relMatcher = Pattern.compile(Pattern.quote(rel.getRegExpr()), Pattern.CASE_INSENSITIVE).matcher(relationship);
-            if(relMatcher.find())
-                return rel;
-        }
-
-        return null;
-    }
-
-    private Synonym<?> findSynonym(String id) {
+    @Override
+    public Synonym<?> getDeclaredSynonym(String id) {
         var f = this.declaredSynonyms.stream().filter(s -> s.getIdentifier().equals(id)).findFirst();
 
         return f.orElse(null);
-    }
-
-    private AttrName findAttrName(String name) {
-        for (var attr: AttrName.values()) {
-            if(name.equals(attr.getName()))
-                return attr;
-        }
-
-        return null;
     }
 }
