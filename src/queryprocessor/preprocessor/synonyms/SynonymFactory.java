@@ -46,6 +46,9 @@ public class SynonymFactory
                 throw new UnsupportedOperationException("Keyword support not implemented");
         }
 
+        if(identifier.trim().equals(Keyword.PLACEHOLDER.getRegExpr()))
+            return new UnconstrainedSynonym(k, t);
+
         return new Synonym(identifier, k, t);
     }
 }

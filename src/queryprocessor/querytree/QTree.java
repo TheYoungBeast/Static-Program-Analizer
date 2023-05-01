@@ -6,6 +6,7 @@ public class QTree implements QueryTree
     private QTNode resultsNode = null;
     private QTNode suchThatNode = null;
     private QTNode withNode = null;
+    private QTNode patternNode = null;
 
     public QTree() {
     }
@@ -24,6 +25,11 @@ public class QTree implements QueryTree
         if(withNode == null)
             withNode = new WithNode();
 
+    }
+
+    public void createPatterNode() {
+        if(patternNode == null)
+            patternNode = new PatternNode();
     }
 
     public void addResNode(ResNode node) {
@@ -45,6 +51,13 @@ public class QTree implements QueryTree
             this.createWithNode();
 
         this.setNode(node, withNode);
+    }
+
+    public void addPatternNode(ExpressionPattern node) {
+        if(patternNode == null)
+            this.createPatterNode();
+
+        this.setNode(node, patternNode);
     }
 
     private void setNode(QTNode node, QTNode parent)
@@ -76,5 +89,10 @@ public class QTree implements QueryTree
     @Override
     public QTNode getWithNode() {
         return withNode;
+    }
+
+    @Override
+    public QTNode getPatternNode() {
+        return patternNode;
     }
 }

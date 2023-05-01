@@ -49,7 +49,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
         if(queryTree == null)
             return null;
 
-        var node = queryTree.getResultsNode().getFirstChild();
+        var rNode = queryTree.getResultsNode().getFirstChild();
 
         // LinkedHashMap
         // in addition to the uniqueness of elements, the order of elements in which they were added is also guaranteed
@@ -57,12 +57,12 @@ public class QueryEvaluatorBase implements QueryEvaluator
         var resultLUT = new LinkedHashMap<Synonym<?>, Set<ASTNode>>();
         var resultExtractors = new LinkedHashMap<Synonym<?>, Function<ASTNode, String>>();
 
-        while(node != null)
+        while(rNode != null)
         {
-            if(node instanceof ResNode)
-                resultNodes.add((ResNode) node);
+            if(rNode instanceof ResNode)
+                resultNodes.add((ResNode) rNode);
 
-            node = node.getRightSibling();
+            rNode = rNode.getRightSibling();
         }
 
         for (var resNode: resultNodes) {
@@ -126,6 +126,28 @@ public class QueryEvaluatorBase implements QueryEvaluator
             }
         }
 
+        var patterns = new ArrayList<ExpressionPattern>();
+        if(queryTree.getPatternNode() != null){
+            ExpressionPattern node = (ExpressionPattern) queryTree.getPatternNode().getFirstChild();
+
+            while (node != null) {
+                patterns.add(node);
+                node = (ExpressionPattern) node.getRightSibling();
+            }
+
+            for (var pattern: patterns) {
+                var statements = resultLUT.computeIfAbsent(pattern.getSynonym(), l -> getMatchingNodes(pkb.getAST(), pattern.getSynonym()));
+                var result = new HashSet<ASTNode>();
+
+                for (var stmt: statements) {
+                    if(pattern.matchesPattern(stmt))
+                        result.add(stmt);
+                }
+
+                resultLUT.put(pattern.getSynonym(), result);
+            }
+        }
+
         List<PartialResult> partialResults = new ArrayList<>();
         Map<Pair<Synonym<?>, Synonym<?>>, LinkedHashSet<Pair<ASTNode, ASTNode>>> pairsInRelationshipMap = new HashMap<>();
         if(queryTree.getSuchThatNode() != null)
@@ -133,7 +155,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
             var relNode = queryTree.getSuchThatNode().getFirstChild();
             var relationships = new ArrayList<RelationshipRef>();
 
-            while (relNode != null){
+            while (relNode != null) {
                 if(relNode instanceof RelationshipRef)
                     relationships.add((RelationshipRef) relNode);
 
@@ -265,7 +287,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
                 }
             }
 
-            if(!contains)
+            if(!contains && !entry.getValue().isEmpty())
                 partialResults.add(new PartialResult(entry.getKey(), entry.getValue()));
         }
 

@@ -4,11 +4,11 @@ import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import pkb.ast.abstraction.ASTNode;
 import queryprocessor.preprocessor.exceptions.InvalidQueryException;
 import queryprocessor.preprocessor.exceptions.MissingArgumentException;
-import queryprocessor.preprocessor.synonyms.StatementIdSynonym;
-import queryprocessor.preprocessor.synonyms.Synonym;
-import queryprocessor.preprocessor.synonyms.SynonymFactory;
+import queryprocessor.preprocessor.synonyms.*;
 import queryprocessor.preprocessor.validators.ValidatorFactory;
 import queryprocessor.querytree.*;
 import utils.Pair;
@@ -137,7 +137,6 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         {
             var argsMatcher = Pattern.compile(Keyword.REL_ARGS.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query).region(start, end);
 
-            var test = query.substring(start, end);
             if(!argsMatcher.find())
                 throw new MissingArgumentException(relType.getName(), 0, query);
 
@@ -197,9 +196,9 @@ public class QueryPreprocessorBase implements QueryPreprocessor
             this.parsingProgress = parsingProgress;
         }
 
-        public List<ConditionNode> extractConditions(String query) throws InvalidQueryException
+        public List<Condition> extractConditions(String query) throws InvalidQueryException
         {
-            var conditions = new ArrayList<ConditionNode>();
+            var conditions = new ArrayList<Condition>();
 
             var matcher = Pattern.compile(Keyword.WITH_CLAUSE.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
             var matchResults = matcher.results().collect(Collectors.toList());
@@ -213,11 +212,11 @@ public class QueryPreprocessorBase implements QueryPreprocessor
             return conditions;
         }
 
-        public List<ConditionNode> extractAttributes(String group) throws InvalidQueryException {
+        public List<Condition> extractAttributes(String group) throws InvalidQueryException {
             var conditionPart = Arrays.stream(group.split("=")).map(String::trim).collect(Collectors.toList());
             conditionPart.set(0, conditionPart.get(0).replaceAll(Keyword.WITH.getRegExpr(), "").trim());
 
-            List<ConditionNode> conditionNodes = new ArrayList<>();
+            List<Condition> conditionNodes = new ArrayList<>();
             List<Pair<Synonym<?>, AttrName>> refs = new ArrayList<>();
 
             for (var c: conditionPart) {
@@ -256,6 +255,61 @@ public class QueryPreprocessorBase implements QueryPreprocessor
             }
 
             return conditionNodes;
+        }
+    }
+
+    private class PatternExtractor {
+        private final ParsingProgress parsingProgress;
+
+        public PatternExtractor(ParsingProgress parsingProgress) {
+            this.parsingProgress = parsingProgress;
+        }
+
+        public List<ExpressionPattern> extractPatterns(String query) throws InvalidQueryException {
+            var patterns = new ArrayList<ExpressionPattern> ();
+
+            var matcher = Pattern.compile(Keyword.PATTERN_COND.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
+            var results = matcher.results().collect(Collectors.toList());
+
+            for (var matchResult: results) {
+                parsingProgress.setParsed(matchResult.start(), matchResult.end());
+
+                var group = matchResult.group().trim();
+
+                // they need to exist because regex guarantees it
+                var i1 = group.indexOf('(');
+                var i2 = group.indexOf(')');
+
+                var cond = group.substring(i1, i2);
+                var split = cond.split(",");
+                var leftHandExpStr = split[0].trim();
+                var rightHandExprStr = split[1].replaceAll(" ", "");
+
+                var synStr = group.substring(0, i1).trim();
+                var patternSynonym = findSynonym(synStr);
+
+                if(patternSynonym == null)
+                    throw new InvalidQueryException(String.format("Unrecognized synonym %s", synStr), group);
+
+                Synonym<?> leftHandExp = null;
+                if(leftHandExpStr.equals("_"))
+                    leftHandExp =  SynonymFactory.create(leftHandExpStr, Keyword.VARIABLE);
+                else {
+                    var matcher1 = Pattern.compile(Keyword.SYNONYM.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(leftHandExpStr);
+                    if(matcher1.find())
+                        leftHandExp = new NamedVariableSynonym(matcher1.group());
+                }
+
+                // tutaj dac metode parsujacą wyrazenie na drzewko
+                ASTNode tree = null;
+
+                boolean lookBehind = rightHandExprStr.contains("_\"");
+                boolean lookAhead = rightHandExprStr.contains("\"_");
+
+                patterns.add(new ExpressionPattern(patternSynonym, leftHandExp, tree, lookAhead, lookBehind));
+            }
+
+            return patterns;
         }
     }
 
@@ -332,8 +386,6 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
                         tree.addRelationshipNode(rel);
                     }
-
-                    tree.getResultsNode().setRightSibling(tree.getSuchThatNode()); // optional, only to make traversing easy
                 }
                 //endregion
 
@@ -356,11 +408,20 @@ public class QueryPreprocessorBase implements QueryPreprocessor
 
                         tree.addConditionNode(cond);
                     }
+                }
+                //endregion
 
-                    if(tree.getSuchThatNode() != null) // Opcjonalne, tylko po to zeby traversowac drzewko do printowania
-                        tree.getSuchThatNode().setRightSibling(tree.getWithNode());
-                    else
-                        tree.getResultsNode().setRightSibling(tree.getWithNode());
+                // region PATTERN
+                if(containsClause(Keyword.PATTERN, line, progress))
+                {
+                    var pe = new PatternExtractor(progress);
+                    var patterns = pe.extractPatterns(line);
+
+                    tree.createPatterNode();
+
+                    for (var pattern: patterns) {
+                        tree.addPatternNode(pattern);
+                    }
                 }
                 //endregion
             }
