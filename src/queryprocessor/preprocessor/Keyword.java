@@ -39,7 +39,7 @@ public enum Keyword {
   SYNONYMS("(?<=select)\\s*(.*?)((?=such)|(?=with)|(?=pattern)|(?=$))"), // match synonyms between select ... such/with/pattern/$
   //ATTR_COND("([a-zA-Z]+[0-9]*\\.(procName|varName|stmt#)).*?(?=\\=)"), // match synonyms with attributes
   //ATTR2("(?<=\\=)\\s*([0-9]+)|((?<=\\\")[a-zA-Z_]+)(?=\\\")"), // extract what's after attribute | [with p1.stmt#=9]
-  REL_ARGS("(?<=\\()\\s*((\\\"*[a-zA-Z_]+[0-9]*\\\"*)|[0-9]+)\\s*(,\\s*((\\\"*[a-zA-Z]+[0-9]*\\\"*)|[0-9]+))*\\s*(?=\\))"), // extract all types of args from rel func
+  REL_ARGS("(?<=\\()\\s*((\\\"*[a-zA-Z_]+[0-9]*\\\"*)|[0-9]+)\\s*(,\\s*((\\\"*[a-zA-Z_]+[0-9]*\\\"*)|[0-9]+))*\\s*(?=\\))"), // extract all types of args from rel func
   PROCNAME("procName"),
   VARNAME("varName"),
   VALUE("value"),

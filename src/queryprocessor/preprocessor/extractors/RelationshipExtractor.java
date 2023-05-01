@@ -71,7 +71,7 @@ public class RelationshipExtractor {
             arg = arg.trim();
 
             Synonym<?> synonym;
-            if (arg.contains("\"")) {
+            if (arg.contains("\"") || arg.equals(Keyword.PLACEHOLDER.getRegExpr())) {
                 var td = new ArgumentTypeDeducer();
                 arg = arg.replaceAll("\"", "").trim();
                 synonym = td.deduce(relType, arg, argN);
