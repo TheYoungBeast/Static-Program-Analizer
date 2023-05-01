@@ -40,7 +40,7 @@ public class QTree implements QueryTree
         this.setNode(node, suchThatNode);
     }
 
-    public void addConditionNode(ConditionNode node) {
+    public void addConditionNode(Condition node) {
         if(withNode == null)
             this.createWithNode();
 

@@ -3,7 +3,7 @@ package queryprocessor.querytree;
 import pkb.ast.abstraction.ASTNode;
 import utils.Pair;
 
-public class ConditionRefRef extends ConditionNode
+public class ConditionRefRef extends Condition
 {
     AttrRef attrRef1;
     AttrRef attrRef2;

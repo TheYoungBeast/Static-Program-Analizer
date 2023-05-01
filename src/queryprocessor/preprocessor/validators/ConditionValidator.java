@@ -4,10 +4,10 @@ import queryprocessor.querytree.*;
 
 public class ConditionValidator implements Validator
 {
-    private final ConditionNode condition;
+    private final Condition condition;
     private String msg;
 
-    public ConditionValidator(ConditionNode condition) {
+    public ConditionValidator(Condition condition) {
         this.condition = condition;
     }
 

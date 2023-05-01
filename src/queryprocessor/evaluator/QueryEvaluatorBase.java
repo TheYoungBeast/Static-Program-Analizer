@@ -74,8 +74,8 @@ public class QueryEvaluatorBase implements QueryEvaluator
         var refRefConditions = new HashMap<Pair<Synonym<?>, Synonym<?>>, LinkedHashSet<Pair<ASTNode, ASTNode>>>();
         if(queryTree.getWithNode() != null)
         {
-            var conditionsPair = new ArrayList<Pair<ConditionNode, Boolean>>();
-            var condNode = (ConditionNode) queryTree.getWithNode().getFirstChild();
+            var conditionsPair = new ArrayList<Pair<Condition, Boolean>>();
+            var condNode = (Condition) queryTree.getWithNode().getFirstChild();
 
             while (condNode != null) {
                 if(condNode instanceof ConditionRefRef)
@@ -83,7 +83,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
                 else
                     conditionsPair.add(new Pair<>(condNode, false)); // conditions such as x.procName = "Procedure"
 
-                condNode = (ConditionNode) condNode.getRightSibling();
+                condNode = (Condition) condNode.getRightSibling();
             }
 
             var doubleRefConditions = conditionsPair.stream().filter(Pair::getSecond).map(p -> (ConditionRefRef) p.getFirst()).collect(Collectors.toList());

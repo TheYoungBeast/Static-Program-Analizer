@@ -1,8 +1,8 @@
 package queryprocessor.querytree;
 
-public abstract class ConditionNode extends QTNode
+public abstract class Condition extends QTNode
 {
-    public ConditionNode(String label) {
+    public Condition(String label) {
         super(label);
     }
 

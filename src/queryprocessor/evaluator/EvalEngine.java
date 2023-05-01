@@ -129,7 +129,6 @@ public class EvalEngine implements EvaluationEngine
 
         for (var pre: precedingCandidate) {
             Stack<ASTNode> stack = new Stack<>();
-            for (var following: followingCandidate) {
                var node = pre.getRightSibling();
 
                 do {
@@ -145,7 +144,6 @@ public class EvalEngine implements EvaluationEngine
 
                     node = node.getRightSibling();
                 } while(!stack.empty() || node != null);
-            }
         }
 
         return pairSet;

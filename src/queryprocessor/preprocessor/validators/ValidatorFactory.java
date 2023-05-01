@@ -1,7 +1,7 @@
 package queryprocessor.preprocessor.validators;
 
 import queryprocessor.preprocessor.Keyword;
-import queryprocessor.querytree.ConditionNode;
+import queryprocessor.querytree.Condition;
 import queryprocessor.querytree.RelationshipRef;
 
 import java.util.ArrayList;
@@ -140,7 +140,7 @@ public class ValidatorFactory
          return chain;
      }
 
-     public static Validator createConditionValidator(ConditionNode node) {
+     public static Validator createConditionValidator(Condition node) {
          return new ConditionValidator(node);
      }
 }

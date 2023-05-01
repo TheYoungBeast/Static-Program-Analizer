@@ -2,7 +2,7 @@ package queryprocessor.querytree;
 
 import pkb.ast.abstraction.ASTNode;
 
-public class ConditionRefValue extends ConditionNode
+public class ConditionRefValue extends Condition
 {
     private final AttrRef attrRef;
     private final AttrValue attrValue;
