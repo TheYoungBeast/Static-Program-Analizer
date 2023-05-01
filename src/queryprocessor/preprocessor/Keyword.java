@@ -7,6 +7,7 @@ public enum Keyword {
   WITH("With","with"),
   WITH_CLAUSE("With-cl", "with\\s+[a-zA-Z0-9]+\\.[a-zA-Z#]+\\s*=\\s*(([0-9]+)|(\\s*\\\"(.*?)\\\")|([a-zA-Z0-9]+\\.[a-zA-Z#]+))"),
   PATTERN("Pattern","pattern"),
+  PATTERN_COND("[a-zA-Z]+[0-9]*\\s*\\(\\s*((\\\"[a-zA-Z]+\\\")|(_))\\s*,\\s*(([_]\\s*)|([_]*\\s*\\\"[a-zA-Z\\*\\+\\-\\\\]+\\\"\\s*[_]*))+\\s*\\)"),
   BOOLEAN("Boolean", "BOOLEAN"),
   IF("If", "if"),
   CALL("Call", "call"),

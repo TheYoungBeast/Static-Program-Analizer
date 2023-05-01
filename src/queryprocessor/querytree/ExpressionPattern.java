@@ -4,28 +4,34 @@ import pkb.ast.AssignmentNode;
 import pkb.ast.IfNode;
 import pkb.ast.WhileNode;
 import pkb.ast.abstraction.ASTNode;
-import pkb.ast.abstraction.StatementNode;
 import queryprocessor.preprocessor.synonyms.Synonym;
 
 import java.util.Optional;
 
 public class ExpressionPattern extends QTNode
 {
-    public final Optional<ASTNode> subExpressionTree;
-    public final Optional<Synonym<?>> leftHandExpression;
-    public final boolean lookBehind;
-    public final boolean lookAhead;
+    private final Synonym<?> synonym;
+    private final Optional<ASTNode> subExpressionTree;
+    private final Optional<Synonym<?>> leftHandExpression;
+    private final boolean lookBehind;
+    private final boolean lookAhead;
 
-    public ExpressionPattern(Synonym<?> leftHand, ASTNode subExpressionTree, boolean lookAhead, boolean lookBehind) {
+    public ExpressionPattern(Synonym<?> synonym, Synonym<?> leftHand, ASTNode subExpressionTree, boolean lookAhead, boolean lookBehind)
+    {
         super("");
+        this.synonym = synonym;
         this.subExpressionTree = Optional.ofNullable(subExpressionTree);
         this.leftHandExpression = Optional.ofNullable(leftHand);
         this.lookBehind = lookBehind;
         this.lookAhead = lookAhead;
     }
 
+    public Synonym<?> getSynonym() {
+        return synonym;
+    }
+
     public boolean matchesPattern(ASTNode node) {
-        if(!(node instanceof StatementNode))
+        if(!synonym.isDerivative(node))
             return false;
 
         if(node instanceof IfNode || node instanceof WhileNode){
