@@ -31,6 +31,12 @@ public class ArgumentTypeDeducer
             case T_NEXT:
                 if(isUnconstrained(arg))
                     return SynonymFactory.create(arg, Keyword.PROG_LINE);
+                break;
+            case T_FOLLOWS:
+            case FOLLOWS:
+                if(isUnconstrained(arg))
+                    return SynonymFactory.create(arg, Keyword.STATEMENT);
+                break;
         }
 
         throw new InvalidQueryException(String.format("Cannot deduce type for argument %s in %s", arg, relType.getName()));
