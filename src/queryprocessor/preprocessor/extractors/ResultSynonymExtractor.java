@@ -14,11 +14,12 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class ResultSynonymExtractor {
+public class ResultSynonymExtractor extends Extractor {
     private final QueryPreprocessor queryPreprocessor;
     private final ParsingProgress parsingProgress;
 
     public ResultSynonymExtractor(QueryPreprocessor queryPreprocessorBase, ParsingProgress parsingProgress) {
+        super(parsingProgress);
         this.queryPreprocessor = queryPreprocessorBase;
         this.parsingProgress = parsingProgress;
     }

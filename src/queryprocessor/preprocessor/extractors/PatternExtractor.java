@@ -15,11 +15,12 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class PatternExtractor {
+public class PatternExtractor extends Extractor {
     private final QueryPreprocessor queryPreprocessor;
     private final ParsingProgress parsingProgress;
 
     public PatternExtractor(QueryPreprocessor queryPreprocessor, ParsingProgress parsingProgress) {
+        super(parsingProgress);
         this.queryPreprocessor = queryPreprocessor;
         this.parsingProgress = parsingProgress;
     }
@@ -27,45 +28,61 @@ public class PatternExtractor {
     public List<ExpressionPattern> extractPatterns(String query) throws InvalidQueryException {
         var patterns = new ArrayList<ExpressionPattern>();
 
-        var matcher = Pattern.compile(Keyword.PATTERN_COND.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
-        var results = matcher.results().collect(Collectors.toList());
+        var regions = extractRegions(query, Keyword.PATTERN);
 
-        for (var matchResult : results) {
-            parsingProgress.setParsed(matchResult.start(), matchResult.end());
+        for (var region: regions)
+        {
+            var matcher = Pattern.compile(Keyword.PATTERN_COND.getRegExpr(), Pattern.CASE_INSENSITIVE)
+                    .matcher(query)
+                    .region(region.getFirst(), region.getSecond());
+            var results = matcher.results().collect(Collectors.toList());
 
-            var group = matchResult.group().trim();
+            for (var matchResult : results) {
+                parsingProgress.setParsed(matchResult.start(), matchResult.end());
 
-            // they need to exist because regex guarantees it
-            var i1 = group.indexOf('(');
-            var i2 = group.indexOf(')');
+                var group = matchResult.group().trim();
 
-            var cond = group.substring(i1, i2);
-            var split = cond.split(",");
-            var leftHandExpStr = split[0].trim();
-            var rightHandExprStr = split[1].replaceAll(" ", "");
+                // they need to exist because regex guarantees it
+                var i1 = group.indexOf('(');
+                var i2 = group.indexOf(')');
 
-            var synStr = group.substring(0, i1).trim();
-            var patternSynonym = queryPreprocessor.getDeclaredSynonym(synStr);
+                var cond = group.substring(i1+1, i2);
+                var split = cond.split(",");
+                var leftHandExpStr = split[0].trim();
+                var rightHandExprStr = split[1].replaceAll(" ", "");
 
-            if (patternSynonym == null)
-                throw new InvalidQueryException(String.format("Unrecognized synonym %s", synStr), group);
+                var synStr = group.substring(0, i1).trim();
+                var patternSynonym = queryPreprocessor.getDeclaredSynonym(synStr);
 
-            Synonym<?> leftHandExp = null;
-            if (leftHandExpStr.equals("_"))
-                leftHandExp = SynonymFactory.create(leftHandExpStr, Keyword.VARIABLE);
-            else {
-                var matcher1 = Pattern.compile(Keyword.SYNONYM.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(leftHandExpStr);
-                if (matcher1.find())
-                    leftHandExp = new NamedVariableSynonym(matcher1.group());
+                if (patternSynonym == null)
+                    throw new InvalidQueryException(String.format("Unrecognized synonym %s", synStr), group);
+
+                Synonym<?> leftHandExp;
+                if (leftHandExpStr.equals("_"))
+                    leftHandExp = SynonymFactory.create(leftHandExpStr, Keyword.VARIABLE);
+                else {
+                    var matcher1 = Pattern.compile(Keyword.SYNONYM.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(leftHandExpStr);
+
+                    if(leftHandExpStr.contains("\"") && matcher1.find())
+                        leftHandExp = new NamedVariableSynonym(matcher1.group());
+                    else
+                        leftHandExp = queryPreprocessor.getDeclaredSynonym(leftHandExpStr);
+                }
+
+                if(leftHandExp == null)
+                    throw new InvalidQueryException("Unrecognized pattern argument", group);
+
+                // tutaj dac metode parsujacą wyrazenie na drzewko
+                ASTNode tree = null;
+
+                boolean lookBehind = rightHandExprStr.contains("_\"");
+                boolean lookAhead = rightHandExprStr.contains("\"_");
+
+                patterns.add(new ExpressionPattern(patternSynonym, leftHandExp, tree, lookAhead, lookBehind));
             }
 
-            // tutaj dac metode parsujacą wyrazenie na drzewko
-            ASTNode tree = null;
-
-            boolean lookBehind = rightHandExprStr.contains("_\"");
-            boolean lookAhead = rightHandExprStr.contains("\"_");
-
-            patterns.add(new ExpressionPattern(patternSynonym, leftHandExp, tree, lookAhead, lookBehind));
+            if((results.size()-1) != getConcatenatorCount(query, region.getFirst(), region.getSecond()))
+                throw new InvalidQueryException("Missing 'and' concatenator or missing pattern conditions");
         }
 
         return patterns;

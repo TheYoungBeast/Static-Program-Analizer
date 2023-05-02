@@ -14,11 +14,12 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class ConditionExtractor {
+public class ConditionExtractor extends Extractor {
     private final QueryPreprocessor queryPreprocessor;
     private final ParsingProgress parsingProgress;
 
     public ConditionExtractor(QueryPreprocessor queryPreprocessor, ParsingProgress parsingProgress) {
+        super(parsingProgress);
         this.queryPreprocessor = queryPreprocessor;
         this.parsingProgress = parsingProgress;
     }
@@ -26,13 +27,21 @@ public class ConditionExtractor {
     public List<Condition> extractConditions(String query) throws InvalidQueryException {
         var conditions = new ArrayList<Condition>();
 
-        var matcher = Pattern.compile(Keyword.WITH_CLAUSE.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
-        var matchResults = matcher.results().collect(Collectors.toList());
+        var regions = extractRegions(query, Keyword.WITH);
+        for (var region: regions) {
+            var matcher = Pattern.compile(Keyword.WITH_CLAUSE.getRegExpr(), Pattern.CASE_INSENSITIVE)
+                    .matcher(query)
+                    .region(region.getFirst(), region.getSecond());
+            var matchResults = matcher.results().collect(Collectors.toList());
 
-        for (var match : matchResults) {
-            var result = match.group();
-            conditions.addAll(extractAttributes(result));
-            parsingProgress.setParsed(match.start(), match.end());
+            for (var match : matchResults) {
+                var result = match.group();
+                conditions.addAll(extractAttributes(result));
+                parsingProgress.setParsed(match.start(), match.end());
+            }
+
+            if((matchResults.size()-1) != getConcatenatorCount(query, region.getFirst(), region.getSecond()))
+                throw new InvalidQueryException("Missing 'and' concatenator or missing condition");
         }
 
         return conditions;
@@ -40,7 +49,10 @@ public class ConditionExtractor {
 
     public List<Condition> extractAttributes(String group) throws InvalidQueryException {
         var conditionPart = Arrays.stream(group.split("=")).map(String::trim).collect(Collectors.toList());
-        conditionPart.set(0, conditionPart.get(0).replaceAll(Keyword.WITH.getRegExpr(), "").trim());
+        var part0 = conditionPart.get(0);
+        part0 = ' ' + part0;
+        part0 = part0.replaceAll(String.format("%s|%s", Keyword.WITH.getRegExpr(), Keyword.AND.getRegExpr()), "");
+        conditionPart.set(0, part0.trim());
 
         List<Condition> conditionNodes = new ArrayList<>();
         List<Pair<Synonym<?>, AttrName>> refs = new ArrayList<>();

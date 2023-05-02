@@ -16,11 +16,12 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class RelationshipExtractor {
+public class RelationshipExtractor extends Extractor {
     private final QueryPreprocessor queryPreprocessor;
     private final ParsingProgress parsingProgress;
 
     public RelationshipExtractor(QueryPreprocessor queryPreprocessor, ParsingProgress parsingProgress) {
+        super(parsingProgress);
         this.queryPreprocessor = queryPreprocessor;
         this.parsingProgress = parsingProgress;
     }
@@ -28,30 +29,30 @@ public class RelationshipExtractor {
     public List<RelationshipRef> extractRelationships(String query) throws InvalidQueryException, MissingArgumentException {
         var relationships = new ArrayList<RelationshipRef>();
 
-        var start = query.length();
-        var end = 0;
-        for (Keyword rel : QueryPreprocessorBase.relationshipsKeywords) {
-            var relMatcher = Pattern.compile(rel.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
-            var matchResults = relMatcher.results().collect(Collectors.toList());
+        var regions = extractRegions(query, Keyword.SUCH_THAT);
+        for (var region: regions)
+        {
+            var relationshipCount = 0;
+            for (Keyword rel : QueryPreprocessorBase.relationshipsKeywords) {
+                var relMatcher = Pattern.compile(rel.getRegExpr(), Pattern.CASE_INSENSITIVE)
+                        .matcher(query)
+                        .region(region.getFirst(), region.getSecond());
+                var matchResults = relMatcher.results().collect(Collectors.toList());
 
-            if (matchResults.isEmpty())
-                continue;
+                if (matchResults.isEmpty())
+                    continue;
 
-            for (var match : matchResults) {
-                if (match.start() < start)
-                    start = match.start();
-
-                if (match.end() > end)
-                    end = match.end();
-
-                var args = extractArguments(query, rel, match.start(), match.end());
-                relationships.add(new RelationshipRef(rel, args));
-                parsingProgress.setParsed(match.start(), match.end());
+                for (var match : matchResults) {
+                    var args = extractArguments(query, rel, match.start(), match.end());
+                    relationships.add(new RelationshipRef(rel, args));
+                    parsingProgress.setParsed(match.start(), match.end());
+                    relationshipCount++;
+                }
             }
-        }
 
-        if (!relationships.isEmpty() && (relationships.size() - 1) != getConcatenatorCount(query, start, end))
-            throw new InvalidQueryException("Missing 'and' concatenator in between relationships", query);
+            if ((relationshipCount - 1) != getConcatenatorCount(query, region.getFirst(), region.getSecond()))
+                throw new InvalidQueryException("Missing 'and' concatenator or missing relationships.", query.substring(region.getFirst(), region.getSecond()));
+        }
 
         return relationships;
     }
@@ -87,16 +88,6 @@ public class RelationshipExtractor {
         }
 
         return arguments;
-    }
-
-    public long getConcatenatorCount(String line, int start, int end) {
-        var matcher = Pattern.compile(Keyword.AND.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(line).region(start, end);
-        var results = matcher.results().collect(Collectors.toList());
-
-        if (!results.isEmpty())
-            results.forEach(matchResult -> parsingProgress.setParsed(matchResult.start(), matchResult.end()));
-
-        return results.size();
     }
 
     private boolean isNumeric(String strNum) {
