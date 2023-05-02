@@ -60,7 +60,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
         if (queryLines.length == 0)
             throw new InvalidQueryException("The query not properly ended. "+querySeparator+" is missing", 1);
 
-        var progress = new ParsingProgress(queryLines[queryLines.length-1]);
+        ParsingProgress progress = null;
         var tree = new QTree();
         declaredSynonyms.clear();
 
@@ -84,6 +84,11 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                 parseSynonymDeclarations(line, i);
             else
             {
+                progress = new ParsingProgress(line);
+                var matcher = Pattern.compile(Keyword.SELECT.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(line);
+                var match = matcher.results().findFirst().get();
+                progress.setParsed(match.start(), match.end());
+
                 //region SELECT CLAUSE
                 var rse = new ResultSynonymExtractor(this, progress);
                 var resultSynonyms = rse.extractSynonyms(line);
@@ -215,7 +220,7 @@ public class QueryPreprocessorBase implements QueryPreprocessor
     private boolean containsClause(Keyword clause, String query, ParsingProgress parsingProgress) {
         var matcher = Pattern.compile(clause.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(query);
         var res = matcher.find();
-        if(res)
+        if(res && parsingProgress != null)
             parsingProgress.setParsed(matcher.toMatchResult().start(), matcher.toMatchResult().end());
 
         return res;
