@@ -9,6 +9,7 @@ import frontend.parser.Parser;
 import java.util.*;
 
 import pkb.ProgramKnowledgeBase;
+import pkb.ast.abstraction.ExpressionNode;
 import pkb.cfg.ControlFlowGraph;
 import queryprocessor.evaluator.EvalEngine;
 import queryprocessor.evaluator.abstraction.EvaluationEngine;

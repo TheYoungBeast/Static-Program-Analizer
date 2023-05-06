@@ -24,24 +24,30 @@ public class Lexer {
   }
 
   public List<Token> tokenize(String filePath) {
-    List<Token> tokens = new ArrayList<>();
+    List<Token> tokens;
     try {
       String input = Files.readString(Path.of(filePath));
-      Matcher matcher = tokenPattern.matcher(input);
-
-      while (matcher.find()) {
-        for (TokenType type : TokenType.values()) {
-          String value = matcher.group(type.name());
-          if (value != null) {
-            if (type != TokenType.WHITESPACE) {
-              tokens.add(new Token(type, value));
-            }
-            break;
-          }
-        }
-      }
+      tokens = tokenizeFromString(input);
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+    return tokens;
+  }
+
+  public List<Token> tokenizeFromString(String input) {
+    List<Token> tokens = new ArrayList<>();
+    Matcher matcher = tokenPattern.matcher(input);
+
+    while (matcher.find()) {
+      for (TokenType type : TokenType.values()) {
+        String value = matcher.group(type.name());
+        if (value != null) {
+          if (type != TokenType.WHITESPACE) {
+            tokens.add(new Token(type, value));
+          }
+          break;
+        }
+      }
     }
     return tokens;
   }

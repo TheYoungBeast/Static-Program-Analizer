@@ -1,7 +1,10 @@
 package frontend.parser;
 
+import static frontend.parser.ParseAssignment.parseAssignment;
+import static frontend.parser.ParseExpresion.parseExpression;
 import static frontend.parser.ParseProgram.parseProgram;
 
+import frontend.lexer.Lexer;
 import java.util.ArrayList;
 import java.util.Objects;
 import pkb.ast.AssignmentNode;
@@ -14,6 +17,7 @@ import pkb.ast.ProcedureNode;
 import pkb.ast.TimesNode;
 import pkb.ast.VariableNode;
 import pkb.ast.WhileNode;
+import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.ContainerNode;
 import pkb.ast.abstraction.ExpressionNode;
 import pkb.ast.abstraction.StatementNode;
@@ -38,7 +42,15 @@ public class Parser {
   public static void parse(List<Token> tokens, ProgramKnowledgeBase pkb) {
     Parser.tokens = tokens;
     Parser.pkb = pkb;
+    Parser.index = 0;
     pkb.addAST(parseProgram());
+  }
+
+  public static ExpressionNode parsePattern(String pattern) {
+    Lexer lexer = new Lexer();
+    Parser.tokens = lexer.tokenizeFromString(pattern);
+    Parser.index = 0;
+    return parseExpression();
   }
 
   static Token match(TokenType type) {
