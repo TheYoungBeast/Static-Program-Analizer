@@ -13,8 +13,8 @@ import java.util.Set;
 @SuppressWarnings("unused")
 public interface ProgramKnowledgeBaseAPI {
     ProgramNode getAST();
-
-    List<ControlFlowGraph> getCFG();
+    
+    ControlFlowGraph getControlFlowGraph(ProcedureNode procedureNode);
 
     Set<VariableNode> getModifies(ASTNode s);
 

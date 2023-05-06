@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 
 public class EvalEngine implements EvaluationEngine
 {
-    private final ProgramKnowledgeBaseAPI api;
+    private final ProgramKnowledgeBaseAPI pkb;
 
     public EvalEngine(ProgramKnowledgeBaseAPI api) {
-        this.api = api;
+        this.pkb = api;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class EvalEngine implements EvaluationEngine
         Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
 
         for (var statement: statements) {
-            var uses = api.getUses(statement);
+            var uses = pkb.getUses(statement);
 
             for (var variable: variables)
             {
@@ -76,7 +76,7 @@ public class EvalEngine implements EvaluationEngine
         Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
 
         for (var statement: statements) {
-            var modifies = api.getModifies(statement);
+            var modifies = pkb.getModifies(statement);
 
             for (var variable: variables) {
                 if(modifies.contains(variable)) {
@@ -93,7 +93,7 @@ public class EvalEngine implements EvaluationEngine
         Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
 
         for (var caller: callingCandidate) {
-            Set<ProcedureNode> calledProcedures = api.getCalls(caller);
+            Set<ProcedureNode> calledProcedures = pkb.getCalls(caller);
 
             for (var called: beingCalledCandidate) {
                 if(calledProcedures.contains(called) && caller != called)
@@ -154,17 +154,22 @@ public class EvalEngine implements EvaluationEngine
         Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
 
         for (var programLine: precedingProgramLine) {
-            for (var graph: api.getCFG()) {
-                var branching = graph.getBranching(programLine);
+            var ownerProcedure = getStatementOwner(programLine);
 
-                var first = branching.getFirst();
-                if(first != null && followingProgramLine.contains(first.getAstNode()))
-                    pairSet.add(new Pair<>(programLine, first.getAstNode()));
+            if(ownerProcedure == null)
+                continue;
 
-                var second = branching.getSecond();
-                if(second != null && followingProgramLine.contains(second.getAstNode()))
-                    pairSet.add(new Pair<>(programLine, second.getAstNode()));
-            }
+            var graph = pkb.getControlFlowGraph(ownerProcedure);
+
+            var branching = graph.getBranching(programLine);
+
+            var first = branching.getFirst();
+            if(first != null && followingProgramLine.contains(first.getAstNode()))
+                pairSet.add(new Pair<>(programLine, first.getAstNode()));
+
+            var second = branching.getSecond();
+            if(second != null && followingProgramLine.contains(second.getAstNode()))
+                pairSet.add(new Pair<>(programLine, second.getAstNode()));
         }
 
         return pairSet;
@@ -178,7 +183,7 @@ public class EvalEngine implements EvaluationEngine
         var following = followingProgramLine.stream().sorted((a1, a2) -> ((StatementNode)a2).getStatementId() - ((StatementNode)a1).getStatementId()).collect(Collectors.toList());
 
         var computed = new HashSet<Pair<ASTNode, ASTNode>>();
-        var computedCount = 0;
+
         for (var programLine: preceding)
         {
             for (var destination: following)
@@ -186,22 +191,24 @@ public class EvalEngine implements EvaluationEngine
                 if(computed.contains(new Pair<>(programLine, destination)))
                     continue;
 
-                for (var controlFlowGraph: api.getCFG())
-                {
-                    var flowPaths = controlFlowGraph.getFlowPaths(programLine, destination);
+                var ownerProcedure = getStatementOwner(programLine);
+                if(ownerProcedure == null)
+                    continue;
 
-                    for (var path: flowPaths) {
-                        var astPath = path.stream().map(CfgNode::getAstNode).collect(Collectors.toList());
+                var controlFlowGraph = pkb.getControlFlowGraph(ownerProcedure);
 
-                        for (var astNode: astPath)
-                        {
-                            if(!followingProgramLine.contains(astNode))
-                                continue;
+                var flowPaths = controlFlowGraph.getFlowPaths(programLine, destination);
 
-                            computedCount++;
-                            computed.add(new Pair<>(programLine, astNode));
-                            resultPairs.add(new Pair<>(programLine, astNode));
-                        }
+                for (var path: flowPaths) {
+                    var astPath = path.stream().map(CfgNode::getAstNode).collect(Collectors.toList());
+
+                    for (var astNode: astPath)
+                    {
+                        if(!followingProgramLine.contains(astNode))
+                            continue;
+
+                        computed.add(new Pair<>(programLine, astNode));
+                        resultPairs.add(new Pair<>(programLine, astNode));
                     }
                 }
             }
@@ -211,7 +218,24 @@ public class EvalEngine implements EvaluationEngine
     }
 
     @Override
-    public Set<Pair<ASTNode, ASTNode>> evaluateAffectRel(Set<ASTNode> set1, Set<ASTNode> set2) {
-        return Collections.emptySet();
+    public Set<Pair<ASTNode, ASTNode>> evaluateAffectRel(Set<ASTNode> programLine1, Set<ASTNode> programLine2)
+    {
+        var resultsPairs = new HashSet<Pair<ASTNode, ASTNode>>();
+
+
+
+        return resultsPairs;
+    }
+
+    private ProcedureNode getStatementOwner(ASTNode node)
+    {
+        while (node != null) {
+            if(node instanceof ProcedureNode)
+                return (ProcedureNode) node;
+
+            node = node.getParent();
+        }
+
+        return null;
     }
 }

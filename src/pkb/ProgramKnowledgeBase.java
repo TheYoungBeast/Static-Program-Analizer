@@ -4,12 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import pkb.cfg.CfgNode;
 import pkb.cfg.ControlFlowGraph;
 import pkb.ast.ConstantNode;
 import pkb.ast.ProcedureNode;
@@ -33,7 +31,7 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
 
     private ProgramNode ast;
 
-    private List<ControlFlowGraph> cfg;
+    private final Map<ProcedureNode, ControlFlowGraph> controlFlowGrapshMap;
 
     public ProgramKnowledgeBase() {
         modifies = new ConcurrentHashMap<>();
@@ -42,7 +40,7 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
         varTable = new LinkedHashSet<>();
         constTable = new LinkedHashSet<>();
         procTable = new LinkedHashSet<>();
-        cfg = new ArrayList<>();
+        controlFlowGrapshMap = new ConcurrentHashMap<>();
     }
 
     public void addAST(ProgramNode node) {
@@ -61,8 +59,8 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
         return calls;
     }
 
-    public void addCFG(ControlFlowGraph node) {
-        cfg.add(node);
+    public void addControlFlowGraph(ProcedureNode procedureNode, ControlFlowGraph controlFlowGraph) {
+        controlFlowGrapshMap.putIfAbsent(procedureNode, controlFlowGraph);
     }
 
     @Override
@@ -71,8 +69,8 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
     }
 
     @Override
-    public List<ControlFlowGraph> getCFG() {
-        return cfg;
+    public ControlFlowGraph getControlFlowGraph(ProcedureNode procedureNode) {
+        return controlFlowGrapshMap.getOrDefault(procedureNode, null);
     }
 
     public void addModifies(ASTNode s, VariableNode v) {
@@ -138,15 +136,15 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
             return;
 
         var procNode = ast.getFirstChild();
-        var procedures = new ArrayList<ASTNode>();
+        var procedures = new ArrayList<ProcedureNode>();
         while(procNode != null) {
             if(procNode instanceof ProcedureNode) {
-                procedures.add(procNode);
+                procedures.add((ProcedureNode) procNode);
                 procNode = procNode.getRightSibling();
             }
         }
 
         for (var procedure: procedures)
-            this.addCFG(ControlFlowGraph.build((ProcedureNode)procedure));
+            this.addControlFlowGraph(procedure, ControlFlowGraph.build(procedure));
     }
 }
