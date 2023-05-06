@@ -1,5 +1,6 @@
 package queryprocessor.preprocessor.extractors;
 
+import frontend.parser.Parser;
 import pkb.ast.abstraction.ASTNode;
 import queryprocessor.preprocessor.Keyword;
 import queryprocessor.preprocessor.ParsingProgress;
@@ -72,13 +73,18 @@ public class PatternExtractor extends Extractor {
                 if(leftHandExp == null)
                     throw new InvalidQueryException("Unrecognized pattern argument", group);
 
-                // tutaj dac metode parsujacą wyrazenie na drzewko
-                ASTNode tree = null;
+                ASTNode expTree = null;
+                try {
+                    expTree = Parser.parsePattern(rightHandExprStr.replaceAll("[\\\"_]", "").trim());
+                }
+                catch (Exception e) {
+                    throw new InvalidQueryException(String.format("Invalid pattern expression: %s", e.getMessage()));
+                }
 
                 boolean lookBehind = rightHandExprStr.contains("_\"");
                 boolean lookAhead = rightHandExprStr.contains("\"_");
 
-                patterns.add(new ExpressionPattern(patternSynonym, leftHandExp, tree, lookAhead, lookBehind));
+                patterns.add(new ExpressionPattern(patternSynonym, leftHandExp, expTree, lookAhead, lookBehind));
             }
 
             if((results.size()-1) != getConcatenatorCount(query, region.getFirst(), region.getSecond()))

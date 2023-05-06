@@ -63,7 +63,7 @@ public class ExpressionPattern extends QTNode
                     return false;
 
                 var depth = new Depth();
-                if(compareTrees(expressionNode, subExpressionTree.get(), depth)) {
+                if(compareTrees(subExpressionTree.get(), expressionNode, depth, lookAhead)) {
                     if(lookAhead)
                         return true;
 
@@ -71,7 +71,7 @@ public class ExpressionPattern extends QTNode
                     var i = depth.level;
                     while(lastNode != null && i > 0) {
                         i--;
-                        lastNode = lastNode.getRightSibling();
+                        //lastNode = lastNode.getRightSibling();
                     }
 
                     // the special case when comparing fragment tree to bigger tree e.g. x*y+z+v with x*y+z
@@ -93,18 +93,20 @@ public class ExpressionPattern extends QTNode
         public Integer level = 0;
     }
 
-    boolean compareTrees(ASTNode a, ASTNode b, Depth depth)
+    boolean compareTrees(ASTNode a, ASTNode b, Depth depth, final boolean lookAhead)
     {
         /*1. both empty */
         if (a == null && b == null)
+            return true;
+        else if (lookAhead && a == null && b != null)
             return true;
 
         /* 2. both non-empty -> compare them */
         if (a != null && b != null) {
             depth.level++;
             return (a.equals(b)
-                    && compareTrees(a.getFirstChild(), b.getFirstChild(), depth)
-                    && compareTrees(a.getRightSibling(), b.getRightSibling(), depth));
+                    && compareTrees(a.getFirstChild(), b.getFirstChild(), depth, lookAhead)
+                    && compareTrees(a.getRightSibling(), b.getRightSibling(), depth, lookAhead));
         }
 
         /* 3. one empty, one not -> false */

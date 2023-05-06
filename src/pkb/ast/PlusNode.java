@@ -33,4 +33,16 @@ public class PlusNode extends ExpressionNode {
   public void setRight(ExpressionNode right) {
     this.right = right;
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if(this == obj)
+      return true;
+
+    if(obj.getClass() != this.getClass())
+      return false;
+
+    return this.getLeft().equals(((PlusNode) obj).getLeft())
+            && this.getRight().equals(((PlusNode) obj).getRight());
+  }
 }
