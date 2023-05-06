@@ -155,10 +155,16 @@ public class EvalEngine implements EvaluationEngine
         Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
 
         for (var progLine: next1) {
-            var nextProgLine = progLine.getRightSibling();
+            for (var graph: api.getCFG()) {
+                var branching = graph.getBranching(progLine);
 
-            if(nextProgLine != null && next2.contains(nextProgLine)) {
-                pairSet.add(new Pair<>(progLine, nextProgLine));
+                var first = branching.getFirst();
+                if(first != null && next2.contains(first.getAstNode()))
+                    pairSet.add(new Pair<>(progLine, first.getAstNode()));
+
+                var second = branching.getSecond();
+                if(second != null && next2.contains(second.getAstNode()))
+                    pairSet.add(new Pair<>(progLine, second.getAstNode()));
             }
         }
 
