@@ -1,7 +1,4 @@
-import cfg.CfgNode;
-import designextractor.DesignExtractor;
-import pkb.ast.ProcedureNode;
-import pkb.ast.abstraction.ASTNode;
+import frontend.designextractor.DesignExtractor;
 import frontend.lexer.Lexer;
 import frontend.lexer.Token;
 import frontend.parser.Parser;
@@ -9,8 +6,6 @@ import frontend.parser.Parser;
 import java.util.*;
 
 import pkb.ProgramKnowledgeBase;
-import pkb.ast.abstraction.ExpressionNode;
-import pkb.cfg.ControlFlowGraph;
 import queryprocessor.evaluator.EvalEngine;
 import queryprocessor.evaluator.abstraction.EvaluationEngine;
 import queryprocessor.evaluator.abstraction.QueryEvaluator;
@@ -44,7 +39,8 @@ public class Main {
         ProgramKnowledgeBase pkb = new ProgramKnowledgeBase();
         Parser.parse(tokens, pkb);
         DesignExtractor.extract(pkb);
-        ControlFlowGraph.createCfg(pkb);
+        pkb.buildControlFlowGraphs();
+
         if(QoS.verbose)
             System.out.println(pkb.getAST());
 
@@ -53,29 +49,6 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Ready");
-
-        var ast = pkb.getAST();
-
-        ASTNode node = ast;
-        var controlFlowGraphs = new ArrayList<CfgNode>();
-
-        var procNode = ast.getFirstChild();
-        var procedures = new ArrayList<ASTNode>();
-        while(procNode != null) {
-            if(procNode instanceof ProcedureNode) {
-                procedures.add(procNode);
-                procNode = procNode.getRightSibling();
-            }
-        }
-
-        for (var procedure: procedures)
-        {
-           controlFlowGraphs.add(cfg.ControlFlowGraph.build((ProcedureNode)procedure));
-        }
-
-        var cfg1 = controlFlowGraphs.get(0);
-
-        Class breakpoint = null;
 
         while(true) {
             QueryTree qt = null;

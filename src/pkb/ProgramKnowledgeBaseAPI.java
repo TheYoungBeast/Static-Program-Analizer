@@ -1,11 +1,12 @@
 package pkb;
 
 import java.util.List;
+
+import pkb.cfg.ControlFlowGraph;
 import pkb.ast.ConstantNode;
 import pkb.ast.ProgramNode;
 import pkb.ast.VariableNode;
 import pkb.ast.abstraction.ASTNode;
-import pkb.cfg.CFGNode;
 import pkb.ast.ProcedureNode;
 import java.util.Set;
 
@@ -13,7 +14,7 @@ import java.util.Set;
 public interface ProgramKnowledgeBaseAPI {
     ProgramNode getAST();
 
-    List<CFGNode> getCFG();
+    List<ControlFlowGraph> getCFG();
 
     Set<VariableNode> getModifies(ASTNode s);
 
