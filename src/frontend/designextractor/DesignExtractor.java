@@ -1,6 +1,5 @@
-package designextractor;
+package frontend.designextractor;
 
-import frontend.parser.Parser;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
