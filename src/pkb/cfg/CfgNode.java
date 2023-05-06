@@ -1,4 +1,4 @@
-package cfg;
+package pkb.cfg;
 
 import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.StatementNode;

@@ -1,57 +1,124 @@
 package pkb.cfg;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import pkb.ProgramKnowledgeBase;
+import pkb.ast.IfNode;
 import pkb.ast.ProcedureNode;
-import pkb.ast.ProgramNode;
 import pkb.ast.WhileNode;
+import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.StatementNode;
+import utils.Pair;
 
-public class ControlFlowGraph {
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
 
-  private static Map<Integer, CFGNode> cfgNodes;
 
-  public static void createCfg(ProgramKnowledgeBase pkb) {
-    cfgNodes = new HashMap<>();
-    ProgramNode ast = pkb.getAST();
-    for (ProcedureNode procedure : ast.procedures) {
-      CFGNode startingNode = getOrCreateCfgNode(procedure.getStatements().get(0).getStatementId());
-      generateCfgFromAst(procedure.getStatements(), startingNode);
-      pkb.addCFG(startingNode);
+public class ControlFlowGraph
+{
+    private final CfgNode graph;
+
+    public ControlFlowGraph(CfgNode node) {
+        graph = node;
     }
-  }
 
-  private static CFGNode getOrCreateCfgNode(int statementId) {
-    cfgNodes.putIfAbsent(statementId, new CFGNode(statementId));
-    return cfgNodes.get(statementId);
-  }
+    public boolean pathExists(StatementNode node1, StatementNode node2) {
+        return false;
+    }
 
-  private static void generateCfgFromAst(List<StatementNode> astNodes, CFGNode currentNode) {
-    int index = 0;
+    public static ControlFlowGraph build(ProcedureNode procedureNode)
+    {
+        var cfg = new CfgNode();
+        var last = generateCfg(procedureNode.getFirstChild(), cfg);
+        var end = new EndProcedureNode();
+        //last.right = end;
+        //last.left = end;
 
-    while (index < astNodes.size()) {
-      if (astNodes.get(index) instanceof WhileNode) {
-        WhileNode whileNode = (WhileNode) astNodes.get(index);
-        CFGNode firstStmtInWhile = getOrCreateCfgNode(whileNode.statements.get(0).getStatementId());
-        currentNode.addSuccessor(firstStmtInWhile);
-        generateCfgFromAst(whileNode.statements, firstStmtInWhile);
-      }
+        return new ControlFlowGraph(cfg);
+    }
 
-      if (index >= astNodes.size() - 1) {
-        CFGNode last = getOrCreateCfgNode(astNodes.get(index).getStatementId());
-        if (!(astNodes instanceof ProcedureNode) && astNodes instanceof StatementNode) {
-          last.addSuccessor(getOrCreateCfgNode(((StatementNode) astNodes.get(index).getParent()).getStatementId()));
+    public Pair<CfgNode, CfgNode> getBranching(ASTNode astNode) {
+        Stack<CfgNode> cfgStack = new Stack<>();
+        cfgStack.add(graph);
+
+        Set<CfgNode> visited = new HashSet<>();
+        while (!cfgStack.isEmpty()) {
+            var node = cfgStack.pop();
+
+            if(node == null)
+                continue;
+            else if(node.getAstNode() != null && node.getAstNode().equals(astNode))
+                return new Pair<>(node.getLeft(), node.getRight());
+
+            visited.add(node);
+
+            if(!visited.contains(node.getLeft()))
+                cfgStack.add(node.getLeft());
+
+            if(!visited.contains(node.getRight()))
+                cfgStack.add(node.getRight());
         }
-        return;
-      }
 
-      CFGNode nextNode = getOrCreateCfgNode(astNodes.get(index + 1).getStatementId());
-      currentNode.addSuccessor(nextNode);
-
-      currentNode = nextNode;
-      index++;
+        return new Pair<>(null, null);
     }
-  }
+
+    private static CfgNode generateCfg(ASTNode head, CfgNode cfgHead)
+    {
+        CfgNode lastCfgNode = cfgHead;
+        var aNode = head;
+
+        while(aNode != null)
+        {
+            if (aNode instanceof WhileNode) {
+                var whileNode = new CfgNode();
+                lastCfgNode.setLeft(whileNode);
+                whileNode.setAstNode(aNode);
+                var stmtList = aNode.getFirstChild().getRightSibling(); // WhileNode
+                                                                                //      |
+                                                                                //   condition ——> stmtList
+                whileNode.setLeft(new CfgNode());
+                lastCfgNode = generateCfg(stmtList.getFirstChild(), whileNode);
+                lastCfgNode.setLeft(whileNode);
+                whileNode.setRight(new CfgNode());
+                whileNode.getRight().setAstNode(aNode.getRightSibling());
+                aNode = aNode.getRightSibling();
+                lastCfgNode = whileNode.getRight();
+            }
+            else if(aNode instanceof IfNode) {
+                var then = aNode.getFirstChild().getRightSibling(); //   if
+                var elsee = then.getRightSibling();             //    /  |  \
+                                                                        //  var  then  else
+                var ifNode = new CfgNode();
+                ifNode.setAstNode(aNode);
+                lastCfgNode.setLeft(ifNode);
+
+                var thenNode = new CfgNode();
+                thenNode.setAstNode(then.getFirstChild());
+                ifNode.setLeft(thenNode);
+                var lastThenStmt = generateCfg(then.getFirstChild(), thenNode);
+
+                var endIfNode = new EndIfNode();
+                lastThenStmt.setRight(endIfNode);
+
+                if(elsee != null) {
+                    var elseNode = new CfgNode();
+                    elseNode.setAstNode(elsee.getFirstChild());
+                    ifNode.setRight(elseNode);
+                    var lastElseStmt = generateCfg(elsee.getFirstChild(), elseNode);
+                    lastElseStmt.setLeft(endIfNode);
+                }
+
+                lastCfgNode = endIfNode;
+            }
+            else if(aNode instanceof StatementNode) {
+                var cfg = new CfgNode();
+                lastCfgNode.setLeft(cfg);
+                cfg.setAstNode(aNode);
+                lastCfgNode = cfg;
+            }
+
+            if(aNode != null)
+                aNode = aNode.getRightSibling();
+        }
+
+        return lastCfgNode;
+    }
 }
