@@ -4,13 +4,12 @@ import pkb.ProgramKnowledgeBaseAPI;
 import pkb.ast.ProcedureNode;
 import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.StatementNode;
+import pkb.cfg.CfgNode;
 import queryprocessor.evaluator.abstraction.EvaluationEngine;
 import utils.Pair;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class EvalEngine implements EvaluationEngine
@@ -150,21 +149,21 @@ public class EvalEngine implements EvaluationEngine
     }
 
     @Override
-    public Set<Pair<ASTNode, ASTNode>> evaluateNextRel(Set<ASTNode> next1, Set<ASTNode> next2)
+    public Set<Pair<ASTNode, ASTNode>> evaluateNextRel(Set<ASTNode> precedingProgramLine, Set<ASTNode> followingProgramLine)
     {
         Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
 
-        for (var progLine: next1) {
+        for (var programLine: precedingProgramLine) {
             for (var graph: api.getCFG()) {
-                var branching = graph.getBranching(progLine);
+                var branching = graph.getBranching(programLine);
 
                 var first = branching.getFirst();
-                if(first != null && next2.contains(first.getAstNode()))
-                    pairSet.add(new Pair<>(progLine, first.getAstNode()));
+                if(first != null && followingProgramLine.contains(first.getAstNode()))
+                    pairSet.add(new Pair<>(programLine, first.getAstNode()));
 
                 var second = branching.getSecond();
-                if(second != null && next2.contains(second.getAstNode()))
-                    pairSet.add(new Pair<>(progLine, second.getAstNode()));
+                if(second != null && followingProgramLine.contains(second.getAstNode()))
+                    pairSet.add(new Pair<>(programLine, second.getAstNode()));
             }
         }
 
@@ -172,8 +171,43 @@ public class EvalEngine implements EvaluationEngine
     }
 
     @Override
-    public Set<Pair<ASTNode, ASTNode>> evaluateNextTransitiveRel(Set<ASTNode> precedingProgLine, Set<ASTNode> followingProgLine) {
-        return Collections.emptySet();
+    public Set<Pair<ASTNode, ASTNode>> evaluateNextTransitiveRel(Set<ASTNode> precedingProgramLine, Set<ASTNode> followingProgramLine) {
+        var resultPairs = new HashSet<Pair<ASTNode, ASTNode>>();
+
+        var preceding = precedingProgramLine.stream().sorted(Comparator.comparingInt(a -> ((StatementNode) a).getStatementId())).collect(Collectors.toList());
+        var following = followingProgramLine.stream().sorted((a1, a2) -> ((StatementNode)a2).getStatementId() - ((StatementNode)a1).getStatementId()).collect(Collectors.toList());
+
+        var computed = new HashSet<Pair<ASTNode, ASTNode>>();
+        var computedCount = 0;
+        for (var programLine: preceding)
+        {
+            for (var destination: following)
+            {
+                if(computed.contains(new Pair<>(programLine, destination)))
+                    continue;
+
+                for (var controlFlowGraph: api.getCFG())
+                {
+                    var flowPaths = controlFlowGraph.getFlowPaths(programLine, destination);
+
+                    for (var path: flowPaths) {
+                        var astPath = path.stream().map(CfgNode::getAstNode).collect(Collectors.toList());
+
+                        for (var astNode: astPath)
+                        {
+                            if(!followingProgramLine.contains(astNode))
+                                continue;
+
+                            computedCount++;
+                            computed.add(new Pair<>(programLine, astNode));
+                            resultPairs.add(new Pair<>(programLine, astNode));
+                        }
+                    }
+                }
+            }
+        }
+
+        return resultPairs;
     }
 
     @Override

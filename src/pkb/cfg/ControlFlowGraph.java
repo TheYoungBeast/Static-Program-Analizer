@@ -7,9 +7,7 @@ import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.StatementNode;
 import utils.Pair;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 
 public class ControlFlowGraph
@@ -20,22 +18,83 @@ public class ControlFlowGraph
         graph = node;
     }
 
-    public boolean pathExists(StatementNode node1, StatementNode node2) {
-        return false;
-    }
-
     public static ControlFlowGraph build(ProcedureNode procedureNode)
     {
         var cfg = new CfgNode();
-        var last = generateCfg(procedureNode.getFirstChild(), cfg);
-        var end = new EndProcedureNode();
-        //last.right = end;
-        //last.left = end;
+        generateCfg(procedureNode.getFirstChild(), cfg);
 
         return new ControlFlowGraph(cfg);
     }
 
+    public List<List<CfgNode>> getFlowPaths(ASTNode from, ASTNode to)
+    {
+        var nodeFrom = seekNode(from);
+        var nodeTo = seekNode(to);
+
+        if(nodeFrom.isEmpty() || nodeTo.isEmpty())
+            return Collections.emptyList();
+
+        // simple workaround for cycles in graph
+        if(nodeFrom.get() == nodeTo.get()) {
+            var node = nodeFrom.get();
+            nodeFrom = Optional.empty();
+
+            if(node.getLeft() != null)
+                nodeFrom = Optional.of(node.getLeft());
+            else if (node.getRight() != null)
+                nodeFrom = Optional.of(node.getRight());
+        }
+
+        if(nodeFrom.isEmpty())
+            return Collections.emptyList();
+
+        var currentPath = new ArrayList<CfgNode>();
+        var flowPaths = new ArrayList<List<CfgNode>>();
+        var visited = new HashSet<CfgNode>();
+
+        DFS(nodeFrom.get(), nodeTo.get(), visited, currentPath, flowPaths);
+
+        return flowPaths;
+    }
+
+    private void DFS(CfgNode u, CfgNode v, Set<CfgNode> visited, ArrayList<CfgNode> currentPath, ArrayList<List<CfgNode>> flowPaths) {
+        if(visited.contains(u))
+            return;
+
+        visited.add(u);
+        currentPath.add(u);
+
+        if(u.equals(v)) {
+            flowPaths.add((List<CfgNode>) currentPath.clone());
+            visited.remove(u);
+            currentPath.remove(currentPath.size()-1);
+            return;
+        }
+
+        if(u.getLeft() != null)
+            DFS(u.getLeft(), v, visited, currentPath, flowPaths);
+
+        if(u.getRight() != null)
+            DFS(u.getRight(), v, visited, currentPath, flowPaths);
+
+        if(!currentPath.isEmpty())
+            currentPath.remove(currentPath.size()-1);
+
+        visited.remove(u);
+    }
+
     public Pair<CfgNode, CfgNode> getBranching(ASTNode astNode) {
+        var cfgNode = seekNode(astNode);
+
+        if(cfgNode.isPresent()) {
+            var node = cfgNode.get();
+            return new Pair<>(node.getLeft(), node.getRight());
+        }
+
+        return new Pair<>(null, null);
+    }
+
+    private Optional<CfgNode> seekNode(ASTNode astNode) {
         Stack<CfgNode> cfgStack = new Stack<>();
         cfgStack.add(graph);
 
@@ -46,7 +105,7 @@ public class ControlFlowGraph
             if(node == null)
                 continue;
             else if(node.getAstNode() != null && node.getAstNode().equals(astNode))
-                return new Pair<>(node.getLeft(), node.getRight());
+                return Optional.of(node);
 
             visited.add(node);
 
@@ -57,7 +116,7 @@ public class ControlFlowGraph
                 cfgStack.add(node.getRight());
         }
 
-        return new Pair<>(null, null);
+        return Optional.empty();
     }
 
     private static CfgNode generateCfg(ASTNode head, CfgNode cfgHead)
@@ -72,8 +131,8 @@ public class ControlFlowGraph
                 lastCfgNode.setLeft(whileNode);
                 whileNode.setAstNode(aNode);
                 var stmtList = aNode.getFirstChild().getRightSibling(); // WhileNode
-                                                                                //      |
-                                                                                //   condition ——> stmtList
+                                                                        //      |
+                                                                        //   condition ——> stmtList
                 whileNode.setLeft(new CfgNode());
                 lastCfgNode = generateCfg(stmtList.getFirstChild(), whileNode);
                 lastCfgNode.setLeft(whileNode);
@@ -85,7 +144,7 @@ public class ControlFlowGraph
             else if(aNode instanceof IfNode) {
                 var then = aNode.getFirstChild().getRightSibling(); //   if
                 var elsee = then.getRightSibling();             //    /  |  \
-                                                                        //  var  then  else
+                                                                //  var  then  else
                 var ifNode = new CfgNode();
                 ifNode.setAstNode(aNode);
                 lastCfgNode.setLeft(ifNode);
