@@ -1,7 +1,9 @@
 package queryprocessor.evaluator;
 
 import pkb.ProgramKnowledgeBaseAPI;
+import pkb.ast.AssignmentNode;
 import pkb.ast.ProcedureNode;
+import pkb.ast.WhileNode;
 import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.StatementNode;
 import pkb.cfg.CfgNode;
@@ -218,11 +220,79 @@ public class EvalEngine implements EvaluationEngine
     }
 
     @Override
-    public Set<Pair<ASTNode, ASTNode>> evaluateAffectRel(Set<ASTNode> programLine1, Set<ASTNode> programLine2)
+    public Set<Pair<ASTNode, ASTNode>> evaluateAffectRel(Set<ASTNode> assign1, Set<ASTNode> assign2)
     {
         var resultsPairs = new HashSet<Pair<ASTNode, ASTNode>>();
 
+        for (var a1: assign1) {
+            if(!(a1 instanceof AssignmentNode))
+                continue;
 
+            var modifies = pkb.getModifies(a1);
+            if(modifies.isEmpty())
+                continue;
+
+            var variable = modifies.stream().findFirst().get();
+
+            var ownerProcedure = getStatementOwner(a1);
+
+            for (var a2: assign2) {
+                if(a1 == a2)
+                    continue;
+
+                if(!(a2 instanceof AssignmentNode))
+                    continue;
+
+                if(!ownerProcedure.equals(getStatementOwner(a2)))
+                    continue;
+
+                var uses = pkb.getUses(a2);
+                if(uses.isEmpty())
+                    continue;
+
+                if(!uses.contains(variable))
+                    continue;
+
+                var cfg = pkb.getControlFlowGraph(ownerProcedure);
+                if(cfg == null)
+                    continue;
+
+                var flowPaths = cfg.getFlowPaths(a1, a2);
+                flowPaths = flowPaths.stream().filter(l -> !l.isEmpty()).collect(Collectors.toList());
+
+                if(flowPaths.isEmpty())
+                    continue;
+
+                var forbidden = false;
+                for (var flowPath: flowPaths) {
+                    for (var step: flowPath) {
+                        var node = step.getAstNode();
+                        if(node == null || node instanceof WhileNode)
+                            continue;
+
+                        if(node.equals(a1) || node.equals(a2))
+                            continue;
+
+                        var nodeModifies = pkb.getModifies(node);
+                        if(nodeModifies.isEmpty())
+                            continue;
+
+                        if(nodeModifies.contains(variable)) {
+                            forbidden = true;
+                            break;
+                        }
+                    }
+
+                    if(forbidden)
+                        break;
+                }
+
+                if(forbidden)
+                    continue;
+
+                resultsPairs.add(new Pair<>(a1, a2));
+            }
+        }
 
         return resultsPairs;
     }
