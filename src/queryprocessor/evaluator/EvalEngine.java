@@ -340,11 +340,16 @@ public class EvalEngine implements EvaluationEngine
                     for (var step : flowPath) {
                         var node = step.getAstNode();
 
+                        if(!evaluateAffectRel(Set.of(a1), Set.of(a2)).isEmpty()) {
+                            resultPairs.add(new Pair<>(a1, a2));
+                            break;
+                        }
+
                         var affectsResult = evaluateAffectRel(Set.of(a1), Set.of(node));
                         if(affectsResult.isEmpty())
                             continue;
 
-                        var nextAffectsResult = evaluateAffectRel(Set.of(node), Set.of(a2));
+                        var nextAffectsResult = evaluateAffectTransitiveRel(Set.of(node), Set.of(a2));
                         if(nextAffectsResult.isEmpty())
                             continue;
 
