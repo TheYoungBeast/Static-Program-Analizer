@@ -297,6 +297,66 @@ public class EvalEngine implements EvaluationEngine
         return resultsPairs;
     }
 
+    @Override
+    public Set<Pair<ASTNode, ASTNode>> evaluateAffectTransitiveRel(Set<ASTNode> assign1Candidates, Set<ASTNode> assign2Candidates) {
+        var resultPairs = new HashSet<Pair<ASTNode, ASTNode>>();
+
+        for (var a1: assign1Candidates) {
+            if (!(a1 instanceof AssignmentNode))
+                continue;
+
+            var modifies = pkb.getModifies(a1);
+            if (modifies.isEmpty())
+                continue;
+
+            var ownerProcedure = getStatementOwner(a1);
+            for (var a2 : assign2Candidates) {
+                if (a1 == a2)
+                    continue;
+
+                if (!(a2 instanceof AssignmentNode))
+                    continue;
+
+                if (!ownerProcedure.equals(getStatementOwner(a2)))
+                    continue;
+
+                var cfg = pkb.getControlFlowGraph(ownerProcedure);
+                if (cfg == null)
+                    continue;
+
+                var flowPaths = cfg.getFlowPaths(a1, a2);
+                flowPaths = flowPaths.stream().filter(l -> !l.isEmpty()).collect(Collectors.toList());
+
+                if (flowPaths.isEmpty())
+                    continue;
+
+                for (var flowPath : flowPaths) {
+                    flowPath = flowPath.stream().filter(cfgNode ->
+                    {
+                        var node = cfgNode.getAstNode();
+                        return node != null && !node.equals(a1) && !node.equals(a2);
+                    }).collect(Collectors.toList());
+
+                    for (var step : flowPath) {
+                        var node = step.getAstNode();
+
+                        var affectsResult = evaluateAffectRel(Set.of(a1), Set.of(node));
+                        if(affectsResult.isEmpty())
+                            continue;
+
+                        var nextAffectsResult = evaluateAffectRel(Set.of(node), Set.of(a2));
+                        if(nextAffectsResult.isEmpty())
+                            continue;
+
+                        resultPairs.add(new Pair<>(a1, a2));
+                    }
+                }
+            }
+        }
+
+        return resultPairs;
+    }
+
     private ProcedureNode getStatementOwner(ASTNode node)
     {
         while (node != null) {

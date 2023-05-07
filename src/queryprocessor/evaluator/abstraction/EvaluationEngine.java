@@ -79,5 +79,19 @@ public interface EvaluationEngine
      */
     Set<Pair<ASTNode, ASTNode>> evaluateNextTransitiveRel(Set<ASTNode> precedingProgramLine, Set<ASTNode> followingProgramLine);
 
-    Set<Pair<ASTNode, ASTNode>> evaluateAffectRel(Set<ASTNode> set1, Set<ASTNode> set2);
+    /**
+     * Evaluation method for Affect relationship
+     * @param assign1Candidates List of ASTNodes (assignments)
+     * @param assign2Candidates List of ASTNodes (assignments)
+     * @return Set of pairs of nodes in Affects relationship
+     */
+    Set<Pair<ASTNode, ASTNode>> evaluateAffectRel(Set<ASTNode> assign1Candidates, Set<ASTNode> assign2Candidates);
+
+    /**
+     * Evaluation method for transitive Affect relationship
+     * @param assign1Candidates List of ASTNodes (assignments)
+     * @param assign2Candidates List of ASTNodes (assignments)
+     * @return Set of pairs of nodes in transitive Affects relationship
+     */
+    Set<Pair<ASTNode, ASTNode>> evaluateAffectTransitiveRel(Set<ASTNode> assign1Candidates, Set<ASTNode> assign2Candidates);
 }

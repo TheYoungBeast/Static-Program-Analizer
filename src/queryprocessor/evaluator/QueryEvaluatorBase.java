@@ -36,7 +36,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
         evalAlgorithms.put(Keyword.FOLLOWS, engine::evaluateFollowsRel);
         evalAlgorithms.put(Keyword.T_FOLLOWS, engine::evaluateFollowsTransitiveRel);
         evalAlgorithms.put(Keyword.AFFECTS, engine::evaluateAffectRel);
-        evalAlgorithms.put(Keyword.T_AFFECTS, engine::evaluateAffectRel);
+        evalAlgorithms.put(Keyword.T_AFFECTS, engine::evaluateAffectTransitiveRel);
         evalAlgorithms.put(Keyword.NEXT, engine::evaluateNextRel);
         evalAlgorithms.put(Keyword.T_NEXT, engine::evaluateNextTransitiveRel);
     }
