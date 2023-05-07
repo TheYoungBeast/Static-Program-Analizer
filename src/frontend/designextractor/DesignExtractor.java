@@ -1,4 +1,4 @@
-package designextractor;
+package frontend.designextractor;
 
 import frontend.parser.Parser;
 import java.util.LinkedHashSet;
@@ -47,6 +47,16 @@ public class DesignExtractor {
       for (ProcedureNode calledProcedure : pkb.getCalls(procedure)) {
         pkb.addModifies(procedure, pkb.getModifies(calledProcedure));
         pkb.addUses(procedure, pkb.getUses(calledProcedure));
+      }
+    }
+    for (ASTNode node : pkb.getModifies().keySet()) {
+      if (node instanceof CallNode) {
+        pkb.addModifies(node, pkb.getModifies(((CallNode) node).getCalledProcedure()));
+      }
+    }
+    for (ASTNode node : pkb.getUses().keySet()) {
+      if (node instanceof CallNode) {
+        pkb.addUses(node, pkb.getUses(((CallNode) node).getCalledProcedure()));
       }
     }
   }

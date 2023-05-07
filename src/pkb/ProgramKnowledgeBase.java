@@ -73,6 +73,10 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
         return controlFlowGrapshMap.getOrDefault(procedureNode, null);
     }
 
+    public void addModifies(ASTNode s) {
+        modifies.computeIfAbsent(s, k -> new LinkedHashSet<>());
+    }
+
     public void addModifies(ASTNode s, VariableNode v) {
         modifies.computeIfAbsent(s, k -> new LinkedHashSet<>()).add(v);
     }
@@ -84,6 +88,10 @@ public class ProgramKnowledgeBase implements ProgramKnowledgeBaseAPI {
     @Override
     public Set<VariableNode> getModifies(ASTNode s) {
         return modifies.getOrDefault(s, Collections.emptySet());
+    }
+
+    public void addUses(ASTNode s) {
+        uses.computeIfAbsent(s, k -> new LinkedHashSet<>());
     }
 
     public void addUses(ASTNode s, VariableNode v) {

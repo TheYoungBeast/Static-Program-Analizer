@@ -88,6 +88,8 @@ public class Parser {
       updateRelationsForWhile((WhileNode) node);
     } else if (node instanceof IfNode) {
       updateRelationsForIf((IfNode) node);
+    } else if (node instanceof CallNode) {
+      updateRelationsForCall((CallNode) node);
     }
   }
 
@@ -108,6 +110,11 @@ public class Parser {
     pkb.addVariableToVarTable(ifNode.condition);
     updateRelationsFromNestedStatements(ifNode, ifNode.statements);
     updateRelationsFromNestedStatements(ifNode, ifNode.elseStatements);
+  }
+
+  private static void updateRelationsForCall(CallNode callNode) {
+    pkb.addModifies(callNode);
+    pkb.addUses(callNode);
   }
 
   private static void updateRelationsFromNestedStatements(ContainerNode node, List<StatementNode> statements) {

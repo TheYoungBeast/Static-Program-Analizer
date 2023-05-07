@@ -27,6 +27,6 @@ procedure p {
 
 procedure q {
   if x then {
-    z = x + 1; }
+    e = x + 1; }
   else {
     x = z + x; } }
