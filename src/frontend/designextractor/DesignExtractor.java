@@ -1,5 +1,6 @@
-package frontend.designextractor;
+package designextractor;
 
+import frontend.parser.Parser;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,12 @@ public class DesignExtractor {
     for (ProcedureNode procedure : pkb.getProcTable()) {
       extractRelations(procedure, pkb.getModifies(), pkb::addModifies);
       extractRelations(procedure, pkb.getUses(), pkb::addUses);
+    }
+    for (ProcedureNode procedure : pkb.getProcTable()) {
+      for (ProcedureNode calledProcedure : pkb.getCalls(procedure)) {
+        pkb.addModifies(procedure, pkb.getModifies(calledProcedure));
+        pkb.addUses(procedure, pkb.getUses(calledProcedure));
+      }
     }
   }
 
