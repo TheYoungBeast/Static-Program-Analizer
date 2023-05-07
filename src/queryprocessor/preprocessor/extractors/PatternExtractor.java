@@ -58,16 +58,18 @@ public class PatternExtractor extends Extractor {
                 if (patternSynonym == null)
                     throw new InvalidQueryException(String.format("Unrecognized synonym %s", synStr), group);
 
-                Synonym<?> leftHandExp;
+                Synonym<?> leftHandExp = null;
                 if (leftHandExpStr.equals("_"))
                     leftHandExp = SynonymFactory.create(leftHandExpStr, Keyword.VARIABLE);
                 else {
                     var matcher1 = Pattern.compile(Keyword.SYNONYM.getRegExpr(), Pattern.CASE_INSENSITIVE).matcher(leftHandExpStr);
 
-                    if(leftHandExpStr.contains("\"") && matcher1.find())
-                        leftHandExp = new NamedVariableSynonym(matcher1.group());
-                    else
-                        leftHandExp = queryPreprocessor.getDeclaredSynonym(leftHandExpStr);
+                    if(matcher1.find()) {
+                        if (leftHandExpStr.contains("\""))
+                            leftHandExp = new NamedVariableSynonym(matcher1.group());
+                        else
+                            leftHandExp = queryPreprocessor.getDeclaredSynonym(leftHandExpStr);
+                    }
                 }
 
                 if(leftHandExp == null)
@@ -75,7 +77,9 @@ public class PatternExtractor extends Extractor {
 
                 ASTNode expTree = null;
                 try {
-                    expTree = Parser.parsePattern(rightHandExprStr.replaceAll("[\\\"_]", "").trim());
+                    var exp = rightHandExprStr.replaceAll("[\\\"_]", "").trim();
+                    if(!exp.isBlank())
+                        expTree = Parser.parsePattern(exp);
                 }
                 catch (Exception e) {
                     throw new InvalidQueryException(String.format("Invalid pattern expression: %s", e.getMessage()));
