@@ -12,7 +12,7 @@ public class ExpressionPattern extends QTNode
 {
     private final Synonym<?> synonym;
     private final Optional<ASTNode> subExpressionTree;
-    private final Optional<Synonym<?>> leftHandExpression;
+    private final ArgNode leftHandExpression;
     private final boolean lookBehind;
     private final boolean lookAhead;
 
@@ -21,7 +21,7 @@ public class ExpressionPattern extends QTNode
         super("");
         this.synonym = synonym;
         this.subExpressionTree = Optional.ofNullable(subExpressionTree);
-        this.leftHandExpression = Optional.ofNullable(leftHand);
+        this.leftHandExpression = new ArgNode(leftHand, 1);
         this.lookBehind = lookBehind;
         this.lookAhead = lookAhead;
     }
@@ -30,24 +30,26 @@ public class ExpressionPattern extends QTNode
         return synonym;
     }
 
+    public ArgNode getLeftHandExpression() {
+        return leftHandExpression;
+    }
+
     public boolean matchesPattern(ASTNode node) {
         if(!synonym.isDerivative(node))
             return false;
 
         if(node instanceof IfNode || node instanceof WhileNode){
-            if(leftHandExpression.isEmpty()) {
-                // While & If node cannot have a body
-                // Placeholder fits anything e.g. while(_,_), if(_,_)
-                return subExpressionTree.isEmpty(); // empty exp tree means the pattern is correct since those nodes cannot have a body
-            }
+            if(matchesVariable(node))
+                return false;
 
-            return matchesVariable(node); // if a variable fits specifies synonyms then the pattern is correct
+            // While & If node cannot have a body
+            // Placeholder fits anything e.g. while(_,_), if(_,_)
+            return subExpressionTree.isEmpty(); // empty exp tree means the pattern is correct since those nodes cannot have a body
         }
 
         if(node instanceof AssignmentNode) {
-            if(leftHandExpression.isPresent())
-                if(!matchesVariable(node))
-                    return false;
+            if(!matchesVariable(node))
+                return false;
 
             if(node.getFirstChild() == null)
                 return false;
@@ -119,6 +121,6 @@ public class ExpressionPattern extends QTNode
         if(leftHandVar == null)
             return false;
 
-        return leftHandExpression.get().isDerivative(leftHandVar);
+        return leftHandExpression.getSynonym().isDerivative(leftHandVar);
     }
 }

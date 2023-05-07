@@ -2,6 +2,7 @@ package queryprocessor.preprocessor.validators;
 
 import queryprocessor.preprocessor.Keyword;
 import queryprocessor.querytree.Condition;
+import queryprocessor.querytree.ExpressionPattern;
 import queryprocessor.querytree.RelationshipRef;
 
 import java.util.ArrayList;
@@ -142,5 +143,12 @@ public class ValidatorFactory
 
      public static Validator createConditionValidator(Condition node) {
          return new ConditionValidator(node);
+     }
+
+     public static Validator createPatternValidator(ExpressionPattern expressionPattern) {
+        var chain = new ArrayList<Validator>();
+        chain.add(new ArgTypeValidator(expressionPattern.getLeftHandExpression(), Keyword.VARIABLE));
+
+        return new AggregatedValidator(chain);
      }
 }

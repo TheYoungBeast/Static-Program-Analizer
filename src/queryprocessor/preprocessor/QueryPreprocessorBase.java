@@ -157,6 +157,10 @@ public class QueryPreprocessorBase implements QueryPreprocessor
                     tree.createPatterNode();
 
                     for (var pattern: patterns) {
+                        var validator = ValidatorFactory.createPatternValidator(pattern);
+                        if(!validator.isValid())
+                            throw new InvalidQueryException(validator.getErrorMsg(), i, line);
+
                         tree.addPatternNode(pattern);
                     }
                 }
