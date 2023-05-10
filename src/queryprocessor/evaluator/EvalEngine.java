@@ -2,6 +2,7 @@ package queryprocessor.evaluator;
 
 import pkb.ProgramKnowledgeBaseAPI;
 import pkb.ast.AssignmentNode;
+import pkb.ast.IfNode;
 import pkb.ast.ProcedureNode;
 import pkb.ast.WhileNode;
 import pkb.ast.abstraction.ASTNode;
@@ -263,12 +264,16 @@ public class EvalEngine implements EvaluationEngine
                 if(flowPaths.isEmpty())
                     continue;
 
-                var forbidden = false;
                 for (var flowPath: flowPaths) {
+                    var forbidden = false;
                     for (var step: flowPath) {
                         var node = step.getAstNode();
-                        if(node == null || node instanceof WhileNode)
+                        if(node == null)
                             continue;
+
+                        if(node instanceof WhileNode || node instanceof IfNode)
+                            if(node.getStatementId() < ((AssignmentNode) a2).getStatementId())
+                                continue;
 
                         if(node.equals(a1) || node.equals(a2))
                             continue;
@@ -283,14 +288,11 @@ public class EvalEngine implements EvaluationEngine
                         }
                     }
 
-                    if(forbidden)
+                    if(!forbidden) {
+                        resultsPairs.add(new Pair<>(a1, a2));
                         break;
+                    }
                 }
-
-                if(forbidden)
-                    continue;
-
-                resultsPairs.add(new Pair<>(a1, a2));
             }
         }
 
@@ -334,7 +336,7 @@ public class EvalEngine implements EvaluationEngine
                     flowPath = flowPath.stream().filter(cfgNode ->
                     {
                         var node = cfgNode.getAstNode();
-                        return node != null && !node.equals(a1) && !node.equals(a2);
+                        return node != null ;//&& !node.equals(a1) && !node.equals(a2);
                     }).collect(Collectors.toList());
 
                     for (var step : flowPath) {
