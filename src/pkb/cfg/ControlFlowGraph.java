@@ -34,6 +34,7 @@ public class ControlFlowGraph
         if(nodeFrom.isEmpty() || nodeTo.isEmpty())
             return Collections.emptyList();
 
+        /*
         // simple workaround for cycles in graph
         if(nodeFrom.get() == nodeTo.get()) {
             var node = nodeFrom.get();
@@ -45,37 +46,55 @@ public class ControlFlowGraph
                 nodeFrom = Optional.of(node.getRight());
         }
 
+
+
         if(nodeFrom.isEmpty())
             return Collections.emptyList();
+         */
 
         var currentPath = new ArrayList<CfgNode>();
         var flowPaths = new ArrayList<List<CfgNode>>();
         var visited = new HashSet<CfgNode>();
 
-        DFS(nodeFrom.get(), nodeTo.get(), visited, currentPath, flowPaths);
+        DFS(nodeFrom.get(),
+                nodeTo.get(),
+                visited,
+                currentPath,
+                flowPaths,
+                nodeFrom.get().getAstNode().getStatementId() == nodeTo.get().getAstNode().getStatementId(),
+                0);
 
         return flowPaths;
     }
 
-    private void DFS(CfgNode u, CfgNode v, Set<CfgNode> visited, ArrayList<CfgNode> currentPath, ArrayList<List<CfgNode>> flowPaths) {
+    private void DFS(CfgNode u, CfgNode v, Set<CfgNode> visited, ArrayList<CfgNode> currentPath, ArrayList<List<CfgNode>> flowPaths, final boolean cycle, int count) {
         if(visited.contains(u))
             return;
 
         visited.add(u);
         currentPath.add(u);
 
-        if(u.equals(v)) {
-            flowPaths.add((List<CfgNode>) currentPath.clone());
-            visited.remove(u);
-            currentPath.remove(currentPath.size()-1);
-            return;
+        if(u.equals(v))
+        {
+            if(cycle) {
+                count += 1;
+                if(count < 2)
+                    visited.remove(u);
+            }
+
+            if(count == 2 || !cycle) {
+                flowPaths.add((List<CfgNode>) currentPath.clone());
+                visited.remove(u);
+                currentPath.remove(currentPath.size() - 1);
+                return;
+            }
         }
 
         if(u.getLeft() != null)
-            DFS(u.getLeft(), v, visited, currentPath, flowPaths);
+            DFS(u.getLeft(), v, visited, currentPath, flowPaths, cycle, count);
 
         if(u.getRight() != null)
-            DFS(u.getRight(), v, visited, currentPath, flowPaths);
+            DFS(u.getRight(), v, visited, currentPath, flowPaths, cycle, count);
 
         if(!currentPath.isEmpty())
             currentPath.remove(currentPath.size()-1);
