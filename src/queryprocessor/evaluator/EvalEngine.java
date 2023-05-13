@@ -238,8 +238,8 @@ public class EvalEngine implements EvaluationEngine
             var ownerProcedure = getStatementOwner(a1);
 
             for (var a2: assign2) {
-                if(a1 == a2)
-                    continue;
+                //if(a1 == a2)
+                    //continue;
 
                 if(!(a2 instanceof AssignmentNode))
                     continue;
@@ -313,8 +313,6 @@ public class EvalEngine implements EvaluationEngine
 
             var ownerProcedure = getStatementOwner(a1);
             for (var a2 : assign2Candidates) {
-                if (a1 == a2)
-                    continue;
 
                 if (!(a2 instanceof AssignmentNode))
                     continue;
@@ -332,6 +330,10 @@ public class EvalEngine implements EvaluationEngine
                 if (flowPaths.isEmpty())
                     continue;
 
+                if(!evaluateAffectRel(Set.of(a1), Set.of(a2)).isEmpty()) {
+                    resultPairs.add(new Pair<>(a1, a2));
+                }
+
                 for (var flowPath : flowPaths) {
                     flowPath = flowPath.stream().filter(cfgNode ->
                     {
@@ -339,19 +341,19 @@ public class EvalEngine implements EvaluationEngine
                         return node != null ;//&& !node.equals(a1) && !node.equals(a2);
                     }).collect(Collectors.toList());
 
-                    for (var step : flowPath) {
+                    for (int i = 0; i < flowPath.size(); i++) {
+                        var step = flowPath.get(i);
                         var node = step.getAstNode();
-
-                        if(!evaluateAffectRel(Set.of(a1), Set.of(a2)).isEmpty()) {
-                            resultPairs.add(new Pair<>(a1, a2));
-                            break;
-                        }
 
                         var affectsResult = evaluateAffectRel(Set.of(a1), Set.of(node));
                         if(affectsResult.isEmpty())
                             continue;
 
-                        var nextAffectsResult = evaluateAffectTransitiveRel(Set.of(node), Set.of(a2));
+                        if(i+1 >= flowPath.size())
+                            continue;
+
+
+                        var nextAffectsResult = evaluateAffectTransitiveRel(Set.of(flowPath.get(i+1).getAstNode()), Set.of(a2));
                         if(nextAffectsResult.isEmpty())
                             continue;
 
