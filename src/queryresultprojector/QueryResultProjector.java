@@ -19,7 +19,7 @@ public class QueryResultProjector
     }
 
     public String format() {
-        if(evaluationResult == null || evaluationResult.getPartialResults().isEmpty()) {
+        if(evaluationResult == null) {
             return NoResultMsg;
         }
 
@@ -29,6 +29,17 @@ public class QueryResultProjector
 
         var partialResults = evaluationResult.getPartialResults();
         var map  = new LinkedHashMap<Synonym<?>, PartialResult>();
+
+        if(synonyms.stream().anyMatch(s -> s.getKeyword().equals(Keyword.BOOLEAN))) {
+            boolean empty = partialResults.stream().anyMatch(pr -> pr.getValue().isEmpty()) || partialResults.isEmpty();
+            if(empty)
+                builder.append("false");
+            else
+                builder.append("true");
+
+            return builder.toString();
+        } else if(evaluationResult.getPartialResults().isEmpty())
+            return NoResultMsg;
 
         var relationshipsForKey = new HashMap<Pair<Synonym<?>, Synonym<?>>, Set<Pair<ASTNode, ASTNode>>>();
 
