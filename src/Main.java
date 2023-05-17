@@ -77,6 +77,9 @@ public class Main {
                 if (QoS.printStackTree)
                     e.printStackTrace();
             }
+            catch (Error e) {
+                System.err.println("# " + e);
+            }
         }
     }
 }
