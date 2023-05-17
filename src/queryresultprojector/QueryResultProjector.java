@@ -154,6 +154,9 @@ public class QueryResultProjector
             printed++;
         }
 
+        if(builder.toString().isBlank())
+            return NoResultMsg;
+
         return builder.toString();
     }
 
