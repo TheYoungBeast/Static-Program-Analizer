@@ -12,6 +12,10 @@ public class ArgumentTypeDeducer
     {
         switch (relType)
         {
+            case PARENT:
+            case T_PARENT:
+                if(isUnconstrained(arg))
+                    return SynonymFactory.create(arg, Keyword.STATEMENT);
             case CALLS:
             case T_CALLS:
                 if(isUnconstrained(arg))
