@@ -44,12 +44,6 @@ public class DesignExtractor {
       extractRelations(procedure, pkb.getModifies(), pkb::addModifies);
       extractRelations(procedure, pkb.getUses(), pkb::addUses);
     }
-    for (ProcedureNode procedure : pkb.getProcTable()) {
-      for (ProcedureNode calledProcedure : pkb.getCalls(procedure)) {
-        pkb.addModifies(procedure, pkb.getModifies(calledProcedure));
-        pkb.addUses(procedure, pkb.getUses(calledProcedure));
-      }
-    }
     for (ASTNode node : pkb.getModifies().keySet()) {
       if (node instanceof CallNode) {
         pkb.addModifies(node, pkb.getModifies(((CallNode) node).getCalledProcedure()));
