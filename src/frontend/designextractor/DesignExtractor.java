@@ -59,7 +59,7 @@ public class DesignExtractor {
         pkb.addUses(node, pkb.getUses(((CallNode) node).getCalledProcedure()));
         ASTNode parent = node.getParent();
         do {
-          pkb.addModifies(parent, pkb.getUses(node));
+          pkb.addUses(parent, pkb.getUses(node));
           parent = parent.getParent();
         } while (!(parent instanceof ProgramNode));
       }
