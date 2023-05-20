@@ -9,6 +9,7 @@ import java.util.function.BiConsumer;
 import pkb.ProgramKnowledgeBase;
 import pkb.ast.CallNode;
 import pkb.ast.ProcedureNode;
+import pkb.ast.ProgramNode;
 import pkb.ast.VariableNode;
 import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.ContainerNode;
@@ -52,16 +53,27 @@ public class DesignExtractor {
     for (ASTNode node : pkb.getModifies().keySet()) {
       if (node instanceof CallNode) {
         pkb.addModifies(node, pkb.getModifies(((CallNode) node).getCalledProcedure()));
+        ASTNode parent = node.getParent();
+        do {
+            pkb.addModifies(parent, pkb.getModifies(node));
+            parent = parent.getParent();
+        } while (!(parent instanceof ProgramNode));
       }
     }
     for (ASTNode node : pkb.getUses().keySet()) {
       if (node instanceof CallNode) {
         pkb.addUses(node, pkb.getUses(((CallNode) node).getCalledProcedure()));
+        ASTNode parent = node.getParent();
+        do {
+          pkb.addModifies(parent, pkb.getUses(node));
+          parent = parent.getParent();
+        } while (!(parent instanceof ProgramNode));
       }
     }
   }
 
-  private static void extractRelations(ProcedureNode procedure, Map<ASTNode, Set<VariableNode>> relation, BiConsumer<ProcedureNode, Set<VariableNode>> add) {
+  private static void extractRelations(ProcedureNode procedure,
+      Map<ASTNode, Set<VariableNode>> relation, BiConsumer<ProcedureNode, Set<VariableNode>> add) {
     for (ASTNode node : relation.keySet()) {
       if (procedure.getStatements().contains(node)) {
         add.accept(procedure, relation.get(node));
