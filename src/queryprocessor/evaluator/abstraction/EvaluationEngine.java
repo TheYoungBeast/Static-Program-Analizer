@@ -48,6 +48,14 @@ public interface EvaluationEngine
     Set<Pair<ASTNode, ASTNode>> evaluateCallsRel(Set<ASTNode> callingCandidate, Set<ASTNode> beingCalledCandidate);
 
     /**
+     * Evaluation method for Transitive Calls relationship
+     * @param callersCandidates List of ASTNodes (Procedures) (candidates that calls another procedure)
+     * @param calledCandidates List of ASTNodes (Procedures) (candidates that are being called by another procedure)
+     * @return Set of pairs of nodes in Transitive Calls relationship
+     */
+    Set<Pair<ASTNode, ASTNode>> evaluateCallsTransitivesRel(Set<ASTNode> callersCandidates, Set<ASTNode> calledCandidates);
+
+    /**
      * Evaluation method for Follows relationship
      * @param precedingCandidate List of ASTNodes (Statements) (candidates that directly precede another statements)
      * @param followingCandidate List of ASTNodes (Statements) (candidates that directly follow another statements)

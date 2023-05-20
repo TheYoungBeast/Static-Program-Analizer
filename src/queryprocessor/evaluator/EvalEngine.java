@@ -105,6 +105,41 @@ public class EvalEngine implements EvaluationEngine
     }
 
     @Override
+    public Set<Pair<ASTNode, ASTNode>> evaluateCallsTransitivesRel(Set<ASTNode> callersCandidates, Set<ASTNode> calledCandidates) {
+        Set<Pair<ASTNode, ASTNode>> results = new HashSet<>();
+
+        for (var caller: callersCandidates)
+        {
+            HashSet<ASTNode> visited = new HashSet<>();
+            Stack<ProcedureNode> transitiveCalls = new Stack<>();
+            Set<ProcedureNode> calledProcedures = pkb.getCalls(caller);
+            transitiveCalls.addAll(calledProcedures);
+
+            for (var called: calledProcedures) {
+                if(calledCandidates.contains(called))
+                    results.add(new Pair<>(caller, called));
+            }
+
+            while (!transitiveCalls.isEmpty()) {
+                var transCaller =  transitiveCalls.pop();
+                if(visited.contains(transCaller))
+                    continue;
+
+                visited.add(transCaller);
+                var procedures = pkb.getCalls(transCaller);
+                transitiveCalls.addAll(procedures);
+
+                for (var procedure: procedures) {
+                    if(calledCandidates.contains(procedure))
+                        results.add(new Pair<>(caller, procedure));
+                }
+            }
+        }
+
+        return results;
+    }
+
+    @Override
     public Set<Pair<ASTNode, ASTNode>> evaluateFollowsRel(Set<ASTNode> precedingCandidate, Set<ASTNode> followingCandidate) {
         Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
 
@@ -333,7 +368,7 @@ public class EvalEngine implements EvaluationEngine
         return resultsPairs;
     }
 
-    public Set<Pair<ASTNode, ASTNode>> evaluateAffectTransitiveHelper(Set<ASTNode> assign1Candidates, Set<ASTNode> assign2Candidates, List<StatementNode> flowPath)
+    private Set<Pair<ASTNode, ASTNode>> evaluateAffectTransitiveHelper(Set<ASTNode> assign1Candidates, Set<ASTNode> assign2Candidates, List<StatementNode> flowPath)
     {
         if(flowPath.isEmpty())
             return Collections.emptySet();
