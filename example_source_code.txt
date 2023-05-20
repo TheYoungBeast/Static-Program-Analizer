@@ -3,6 +3,17 @@ procedure Example {
   z = 3;
   i = 5;
   while i {
+    while i {
+        while x {
+            while d {
+                if a then {
+                    xd = 402;
+                } else {
+                    call test2;
+                }
+            }
+        }
+    }
     x = x - 1;
     if x then {
       z = x + 1; }
@@ -12,6 +23,11 @@ procedure Example {
     call q;
     i = i - 1; }
   call p; }
+
+procedure test2 {
+    xd3 = 3;
+    xd4 = 4;
+}
 
 procedure p {
   if x then {

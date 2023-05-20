@@ -77,7 +77,7 @@ public class PatternExtractor extends Extractor {
 
                 ASTNode expTree = null;
                 try {
-                    var exp = rightHandExprStr.replaceAll("[\\\"_]", "").trim();
+                    var exp = rightHandExprStr.replaceAll("[\"_]", "").trim();
                     if(!exp.isBlank())
                         expTree = Parser.parsePattern(exp);
                 }
