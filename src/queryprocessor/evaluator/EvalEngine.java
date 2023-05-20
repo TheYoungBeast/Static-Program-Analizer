@@ -1,10 +1,7 @@
 package queryprocessor.evaluator;
 
 import pkb.ProgramKnowledgeBaseAPI;
-import pkb.ast.AssignmentNode;
-import pkb.ast.IfNode;
-import pkb.ast.ProcedureNode;
-import pkb.ast.WhileNode;
+import pkb.ast.*;
 import pkb.ast.abstraction.ASTNode;
 import pkb.ast.abstraction.StatementNode;
 import pkb.cfg.CfgNode;
@@ -264,39 +261,131 @@ public class EvalEngine implements EvaluationEngine
                 if(flowPaths.isEmpty())
                     continue;
 
-                for (var flowPath: flowPaths) {
-                    var forbidden = false;
-                    for (var step: flowPath) {
-                        var node = step.getAstNode();
-                        if(node == null)
-                            continue;
+                for (var flowPath: flowPaths)
+                {
+                    var result = evaluateAffectsHelper(
+                            Set.of(a1),
+                            Set.of(a2),
+                            flowPath.stream().map(CfgNode::getAstNode).filter(Objects::nonNull).collect(Collectors.toList()));
 
-                        if(node instanceof WhileNode || node instanceof IfNode)
-                            if(node.getStatementId() < ((AssignmentNode) a2).getStatementId())
-                                continue;
-
-                        if(node.equals(a1) || node.equals(a2))
-                            continue;
-
-                        var nodeModifies = pkb.getModifies(node);
-                        if(nodeModifies.isEmpty())
-                            continue;
-
-                        if(nodeModifies.contains(variable)) {
-                            forbidden = true;
-                            break;
-                        }
-                    }
-
-                    if(!forbidden) {
+                    if(!result.isEmpty())
                         resultsPairs.add(new Pair<>(a1, a2));
-                        break;
-                    }
                 }
             }
         }
 
         return resultsPairs;
+    }
+
+    private Set<Pair<ASTNode, ASTNode>> evaluateAffectsHelper(Set<ASTNode> assign1Candidates, Set<ASTNode> assign2Candidates, List<StatementNode> flowPath)
+    {
+        if(flowPath.isEmpty())
+            return Collections.emptySet();
+
+        var resultsPairs = new HashSet<Pair<ASTNode, ASTNode>>();
+
+        for (var a1: assign1Candidates) {
+            if (!(a1 instanceof AssignmentNode))
+                continue;
+
+            var modifies = pkb.getModifies(a1);
+            if (modifies.isEmpty())
+                continue;
+
+            var variable = modifies.stream().findFirst().get();
+
+            for (var a2 : assign2Candidates) {
+                if (!(a2 instanceof AssignmentNode))
+                    continue;
+
+                var uses = pkb.getUses(a2);
+                if (uses.isEmpty())
+                    continue;
+
+                if (!uses.contains(variable))
+                    continue;
+
+                var forbidden = false;
+                for (var node : flowPath) {
+                    if (!(node instanceof AssignmentNode) && !(node instanceof CallNode))
+                       continue;
+
+                    if (node.equals(a1) || node.equals(a2))
+                        continue;
+
+                    var nodeModifies = pkb.getModifies(node);
+                    if (nodeModifies.isEmpty())
+                        continue;
+
+                    if (nodeModifies.contains(variable)) {
+                        forbidden = true;
+                        break;
+                    }
+                }
+
+                if (!forbidden) {
+                    resultsPairs.add(new Pair<>(a1, a2));
+                    break;
+                }
+            }
+        }
+
+        return resultsPairs;
+    }
+
+    public Set<Pair<ASTNode, ASTNode>> evaluateAffectTransitiveHelper(Set<ASTNode> assign1Candidates, Set<ASTNode> assign2Candidates, List<StatementNode> flowPath)
+    {
+        if(flowPath.isEmpty())
+            return Collections.emptySet();
+
+        var resultPairs = new HashSet<Pair<ASTNode, ASTNode>>();
+
+        for (var a1: assign1Candidates) {
+            if (!(a1 instanceof AssignmentNode))
+                continue;
+
+            var modifies = pkb.getModifies(a1);
+            if (modifies.isEmpty())
+                continue;
+
+            for (var a2 : assign2Candidates) {
+
+                if (!(a2 instanceof AssignmentNode))
+                    continue;
+
+                if(!evaluateAffectsHelper(Set.of(a1), Set.of(a2), flowPath).isEmpty()) {
+                    resultPairs.add(new Pair<>(a1, a2));
+                }
+
+                for (int i = 0; i < flowPath.size(); i++)
+                {
+                    var node = flowPath.get(i);
+                    if(node.equals(a1))
+                        continue;
+
+                    var helperFlowPath = flowPath.subList(0, i);
+                    var transFlowPath = flowPath.subList(i, flowPath.size()-1);
+
+                    var affectsResult = evaluateAffectsHelper(
+                            Set.of(a1),
+                            Set.of(node),
+                            helperFlowPath);
+                    if(affectsResult.isEmpty())
+                        continue;
+
+                    var nextAffectsResult = evaluateAffectTransitiveHelper(
+                            Set.of(node),
+                            Set.of(a2),
+                            transFlowPath);
+                    if(nextAffectsResult.isEmpty())
+                        continue;
+
+                    resultPairs.add(new Pair<>(a1, a2));
+                }
+            }
+        }
+
+        return resultPairs;
     }
 
     @Override
@@ -341,24 +430,13 @@ public class EvalEngine implements EvaluationEngine
                         return node != null ;//&& !node.equals(a1) && !node.equals(a2);
                     }).collect(Collectors.toList());
 
-                    for (int i = 0; i < flowPath.size(); i++) {
-                        var step = flowPath.get(i);
-                        var node = step.getAstNode();
+                    var results = evaluateAffectTransitiveHelper(
+                            Set.of(a1),
+                            Set.of(a2),
+                            flowPath.stream().map(CfgNode::getAstNode).filter(Objects::nonNull).collect(Collectors.toList()));
 
-                        var affectsResult = evaluateAffectRel(Set.of(a1), Set.of(node));
-                        if(affectsResult.isEmpty())
-                            continue;
-
-                        if(i+1 >= flowPath.size())
-                            continue;
-
-
-                        var nextAffectsResult = evaluateAffectTransitiveRel(Set.of(flowPath.get(i+1).getAstNode()), Set.of(a2));
-                        if(nextAffectsResult.isEmpty())
-                            continue;
-
+                    if(!results.isEmpty())
                         resultPairs.add(new Pair<>(a1, a2));
-                    }
                 }
             }
         }
