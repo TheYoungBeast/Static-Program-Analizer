@@ -1,6 +1,8 @@
 package queryresultprojector;
 
+import pkb.ast.VariableNode;
 import pkb.ast.abstraction.ASTNode;
+import pkb.ast.abstraction.StatementNode;
 import queryprocessor.evaluator.EvaluationResult;
 import queryprocessor.evaluator.PartialResult;
 import queryprocessor.preprocessor.Keyword;
@@ -74,22 +76,8 @@ public class QueryResultProjector
         }
 
         results = recursiveSetCombination(results, source, 0);
-
         results = new ArrayList<>(new HashSet<>(results));
 
-        boolean[] synonymsInRel = new boolean[synonyms.size()];
-        boolean[] synonymsChecked = new boolean[synonyms.size()];
-
-        boolean relExists = false;
-        for (int i = 0; i < synonyms.size(); i++) {
-            var synonym = synonyms.get(i);
-            if(relationshipsForKey.containsKey(synonym)) {
-                synonymsInRel[i] = true;
-                relExists = true;
-            }
-        }
-
-        var filtered2 = relExists ? new ArrayList<List<ASTNode>>() : results;
         var resultValidity = new boolean[results.size()];
 
         for (int i = 0; i < results.size(); i++)
@@ -105,7 +93,7 @@ public class QueryResultProjector
                 var secondSynonym = pair.getSecond();
                 var secondSynonymPos = synonyms.indexOf(secondSynonym);
 
-               if(secondSynonymPos == -1 || synonymPos == -1) {
+                if(secondSynonymPos == -1 || synonymPos == -1) {
                     resultValidity[i] = true;
                     continue;
                 }
@@ -123,8 +111,6 @@ public class QueryResultProjector
             if(valid == relationshipsForKey.keySet().size())
                 resultValidity[i] = true;
         }
-
-        results = filtered2;
 
         //builder.append(String.format("%d result(s): \n", results.size()));
 
