@@ -4,6 +4,7 @@ import frontend.parser.Parser;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import pkb.ProgramKnowledgeBase;
@@ -28,7 +29,7 @@ public class DesignExtractor {
   private static void calculateCallsRelations() {
     for (ProcedureNode procedure : pkb.getProcTable()) {
       List<StatementNode> statements = procedure.getStatements();
-      for (int i = 0; i < statements.size() - 1; ++i) {
+      for (int i = 0; i < statements.size(); ++i) {
         if (statements.get(i) instanceof ContainerNode) {
           statements.addAll(((ContainerNode) statements.get(i)).getStatements());
         } else if (statements.get(i) instanceof CallNode) {
