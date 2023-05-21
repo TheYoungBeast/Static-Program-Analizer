@@ -40,28 +40,30 @@ public class DesignExtractor {
   }
 
   private static void calculateModifiesAndUsesForProcedure() {
-    for (ProcedureNode procedure : pkb.getProcTable()) {
-      extractRelations(procedure, pkb.getModifies(), pkb::addModifies);
-      extractRelations(procedure, pkb.getUses(), pkb::addUses);
-    }
-    for (ASTNode node : pkb.getModifies().keySet()) {
-      if (node instanceof CallNode) {
-        pkb.addModifies(node, pkb.getModifies(((CallNode) node).getCalledProcedure()));
-        ASTNode parent = node.getParent();
-        do {
+    for (int i = 0; i < 2; ++i) {
+      for (ProcedureNode procedure : pkb.getProcTable()) {
+        extractRelations(procedure, pkb.getModifies(), pkb::addModifies);
+        extractRelations(procedure, pkb.getUses(), pkb::addUses);
+      }
+      for (ASTNode node : pkb.getModifies().keySet()) {
+        if (node instanceof CallNode) {
+          pkb.addModifies(node, pkb.getModifies(((CallNode) node).getCalledProcedure()));
+          ASTNode parent = node.getParent();
+          do {
             pkb.addModifies(parent, pkb.getModifies(node));
             parent = parent.getParent();
-        } while (!(parent instanceof ProgramNode));
+          } while (!(parent instanceof ProgramNode));
+        }
       }
-    }
-    for (ASTNode node : pkb.getUses().keySet()) {
-      if (node instanceof CallNode) {
-        pkb.addUses(node, pkb.getUses(((CallNode) node).getCalledProcedure()));
-        ASTNode parent = node.getParent();
-        do {
-          pkb.addUses(parent, pkb.getUses(node));
-          parent = parent.getParent();
-        } while (!(parent instanceof ProgramNode));
+      for (ASTNode node : pkb.getUses().keySet()) {
+        if (node instanceof CallNode) {
+          pkb.addUses(node, pkb.getUses(((CallNode) node).getCalledProcedure()));
+          ASTNode parent = node.getParent();
+          do {
+            pkb.addUses(parent, pkb.getUses(node));
+            parent = parent.getParent();
+          } while (!(parent instanceof ProgramNode));
+        }
       }
     }
   }
