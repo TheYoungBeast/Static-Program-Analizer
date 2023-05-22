@@ -186,7 +186,12 @@ public class EvalEngine implements EvaluationEngine
     @Override
     public Set<Pair<ASTNode, ASTNode>> evaluateNextRel(Set<ASTNode> precedingProgramLine, Set<ASTNode> followingProgramLine)
     {
-        Set<Pair<ASTNode, ASTNode>> pairSet = new HashSet<>();
+        Set<Pair<ASTNode, ASTNode>> results = new HashSet<>();
+
+        // relation to itself - special case (e.g Next(n, n))
+        // such relationship cannot exist
+        if(precedingProgramLine == followingProgramLine)
+            return Collections.emptySet();
 
         for (var programLine: precedingProgramLine) {
             var ownerProcedure = getStatementOwner(programLine);
@@ -195,19 +200,18 @@ public class EvalEngine implements EvaluationEngine
                 continue;
 
             var graph = pkb.getControlFlowGraph(ownerProcedure);
-
             var branching = graph.getBranching(programLine);
 
             var first = branching.getFirst();
             if(first != null && followingProgramLine.contains(first.getAstNode()))
-                pairSet.add(new Pair<>(programLine, first.getAstNode()));
+                results.add(new Pair<>(programLine, first.getAstNode()));
 
             var second = branching.getSecond();
             if(second != null && followingProgramLine.contains(second.getAstNode()))
-                pairSet.add(new Pair<>(programLine, second.getAstNode()));
+                results.add(new Pair<>(programLine, second.getAstNode()));
         }
 
-        return pairSet;
+        return results;
     }
 
     @Override
@@ -234,8 +238,17 @@ public class EvalEngine implements EvaluationEngine
 
                 var flowPaths = controlFlowGraph.getFlowPaths(programLine, destination);
 
-                for (var path: flowPaths) {
-                    var astPath = path.stream().map(CfgNode::getAstNode).collect(Collectors.toList());
+                for (var path: flowPaths)
+                {
+                    // filter path so it won't contain duplicates of start point
+                    // do not include start point at the beginning
+                    for(int i = 0; i < path.size(); i++) {
+                        if(programLine.equals(path.get(i).getAstNode()))
+                            path.set(i, null);
+                        else break;
+                    }
+
+                    var astPath = path.stream().filter(Objects::nonNull).map(CfgNode::getAstNode).collect(Collectors.toList());
 
                     for (var astNode: astPath)
                     {
