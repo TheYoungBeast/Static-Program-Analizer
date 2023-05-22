@@ -45,7 +45,7 @@ public class DesignExtractor {
         }
     }
 
-    public static void resolveDependencies()
+    private static void resolveDependencies()
     {
         var resolved = new HashSet<ProcedureNode>();
         var comparator = Comparator.comparingInt((ProcedureNode p) -> pkb.getCalls(p).size());
