@@ -1,5 +1,6 @@
 package queryprocessor.evaluator;
 
+import pkb.ast.AssignmentNode;
 import pkb.ast.abstraction.ASTNode;
 import pkb.ProgramKnowledgeBaseAPI;
 import queryprocessor.evaluator.abstraction.EvaluationEngine;
@@ -126,30 +127,8 @@ public class QueryEvaluatorBase implements QueryEvaluator
             }
         }
 
-        var patterns = new ArrayList<ExpressionPattern>();
-        if(queryTree.getPatternNode() != null){
-            ExpressionPattern node = (ExpressionPattern) queryTree.getPatternNode().getFirstChild();
-
-            while (node != null) {
-                patterns.add(node);
-                node = (ExpressionPattern) node.getRightSibling();
-            }
-
-            for (var pattern: patterns) {
-                var statements = resultLUT.computeIfAbsent(pattern.getSynonym(), l -> getMatchingNodes(pkb.getAST(), pattern.getSynonym()));
-                var result = new HashSet<ASTNode>();
-
-                for (var stmt: statements) {
-                    if(pattern.matchesPattern(stmt))
-                        result.add(stmt);
-                }
-
-                resultLUT.put(pattern.getSynonym(), result);
-            }
-        }
-
         List<PartialResult> partialResults = new ArrayList<>();
-        Map<Pair<Synonym<?>, Synonym<?>>, LinkedHashSet<Pair<ASTNode, ASTNode>>> pairsInRelationshipMap = new HashMap<>();
+        var entityRelationships = new EntityRelationships();
         if(queryTree.getSuchThatNode() != null)
         {
             var relNode = queryTree.getSuchThatNode().getFirstChild();
@@ -209,7 +188,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
                         if(resultLUT.get(secondSynonym).stream().anyMatch(x -> x == secondNode)) {
                             // jesli oba węzły należą do zbioru
                             // nalezy dodać taki wynik do listy par relacji
-                            var set = pairsInRelationshipMap.computeIfAbsent(new Pair<>(firstSynonym, secondSynonym), l -> new LinkedHashSet<>());
+                            var set = entityRelationships.computeIfAbsent(new Pair<>(firstSynonym, secondSynonym), l -> new LinkedHashSet<>());
                             set.add(resultPair);
                             firstSet.add(firstNode);
                             secondSet.add(secondNode);
@@ -221,7 +200,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
                 // jeśli żadna z par nie należy do zbioru to znaczy, że dalsze relacje nie mogą zostać
                 // spełnione, ponieważ część wspólna tych relacji jest zbiorem pustym: pair<węzeł, węzeł> ∈ ∅
                 if(!anyMatch) { // no results where matched, from this point no further relationship can hold
-                    pairsInRelationshipMap.clear();
+                    entityRelationships.clear();
                     resultLUT.clear();
                     break;
                 }
@@ -235,7 +214,7 @@ public class QueryEvaluatorBase implements QueryEvaluator
             // Zaktualizuj mape relacji
             // Wyeliminuj stare relacje które zachodziły na początku, a potem zostały wyeliminowane przez dalsze relacji
             // i ich wynik nie należy do części wspólnej
-            for (var entry: pairsInRelationshipMap.entrySet()) {
+            for (var entry: entityRelationships.entrySet()) {
                 var keyPair = entry.getKey();
                 var pairSet = entry.getValue();
 
@@ -247,17 +226,70 @@ public class QueryEvaluatorBase implements QueryEvaluator
                                         resultLUT.get(keyPair.getSecond()).contains(p.getSecond())).
                         collect(Collectors.toCollection(LinkedHashSet::new));
 
-                pairsInRelationshipMap.put(keyPair, filteredSet);
+                entityRelationships.put(keyPair, filteredSet);
             }
 
             // Stworz rezultaty cząstkowe dla wyników relacji
             // PartialRezult moze zawierać jeden klucz prosty lub pare kluczy
             // tutaj parą kluczy są synonimy relacji, a zestawem argumenty dla których zachodzi dana relacja
-            for (var entry: pairsInRelationshipMap.entrySet()) {
+            for (var entry: entityRelationships.entrySet()) {
                 var keyPair = entry.getKey();
                 var valueList = entry.getValue();
 
                 PartialResult pr = new PartialResult(keyPair, valueList);
+                partialResults.add(pr);
+            }
+        }
+
+
+        if(queryTree.getPatternNode() != null)
+        {
+            ExpressionPattern node = (ExpressionPattern) queryTree.getPatternNode().getFirstChild();
+
+            var patterns = new ArrayList<ExpressionPattern>();
+            while (node != null) {
+                patterns.add(node);
+                node = (ExpressionPattern) node.getRightSibling();
+            }
+
+            var patternRelationships = new PatternRelationships();
+            for (var pattern: patterns) {
+                var statements = resultLUT.computeIfAbsent(pattern.getSynonym(), l -> getMatchingNodes(pkb.getAST(), pattern.getSynonym()));
+                var variables = resultLUT.computeIfAbsent(pattern.getLeftHandExpression().getSynonym(), l -> getMatchingNodes(pkb.getAST(), pattern.getLeftHandExpression().getSynonym()));
+
+                for (var stmt: statements) {
+                    if(pattern.matchesPattern(stmt, variables))
+                        patternRelationships.computeIfAbsent(
+                                new Pair<>(pattern.getSynonym(), pattern.getLeftHandExpression().getSynonym()),
+                                l -> new LinkedHashSet<>()
+                        ).add(new Pair<>(stmt, stmt.getFirstChild()));
+
+                    else {
+                        statements.remove(stmt);
+                        variables.remove(stmt.getFirstChild());
+                    }
+                }
+
+                // Update LUT
+                resultLUT.put(pattern.getSynonym(), statements);
+                resultLUT.put(pattern.getLeftHandExpression().getSynonym(), variables);
+            }
+
+            // Validate all patterns (implicit and)
+            for (var entry: patternRelationships.entrySet()) {
+                var keyPair = entry.getKey();
+                var valueSet = entry.getValue();
+
+                var validSet = valueSet
+                        .stream()
+                        .filter(p -> resultLUT.get(keyPair.getFirst()).contains(p.getFirst()) &&
+                                resultLUT.get(keyPair.getSecond()).contains(p.getSecond()))
+                        .collect(Collectors.toSet());
+
+                if(validSet.isEmpty())
+                    continue;
+
+                PartialResult pr = new PartialResult(keyPair, validSet);
                 partialResults.add(pr);
             }
         }

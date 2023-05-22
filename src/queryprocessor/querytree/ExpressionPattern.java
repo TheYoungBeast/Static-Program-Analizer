@@ -7,6 +7,7 @@ import pkb.ast.abstraction.ASTNode;
 import queryprocessor.preprocessor.synonyms.Synonym;
 
 import java.util.Optional;
+import java.util.Set;
 
 public class ExpressionPattern extends QTNode
 {
@@ -34,12 +35,12 @@ public class ExpressionPattern extends QTNode
         return leftHandExpression;
     }
 
-    public boolean matchesPattern(ASTNode node) {
+    public boolean matchesPattern(ASTNode node, Set<ASTNode> allowedVariables) {
         if(!synonym.isDerivative(node))
             return false;
 
         if(node instanceof IfNode || node instanceof WhileNode){
-            if(matchesVariable(node))
+            if(!isVariableAllowed(node, allowedVariables) || !matchesVariable(node))
                 return false;
 
             // While & If node cannot have a body
@@ -48,7 +49,7 @@ public class ExpressionPattern extends QTNode
         }
 
         if(node instanceof AssignmentNode) {
-            if(!matchesVariable(node))
+            if(!isVariableAllowed(node, allowedVariables) || !matchesVariable(node) )
                 return false;
 
             if(node.getFirstChild() == null)
@@ -100,7 +101,7 @@ public class ExpressionPattern extends QTNode
         /*1. both empty */
         if (a == null && b == null)
             return true;
-        else if (lookAhead && a == null && b != null)
+        else if (lookAhead && a == null)
             return true;
 
         /* 2. both non-empty -> compare them */
@@ -113,6 +114,15 @@ public class ExpressionPattern extends QTNode
 
         /* 3. one empty, one not -> false */
         return false;
+    }
+
+    private boolean isVariableAllowed(ASTNode node, Set<ASTNode> allowedVariables) {
+        var leftHandVar = node.getFirstChild();
+
+        if(leftHandVar == null)
+            return false;
+
+        return allowedVariables.contains(leftHandVar);
     }
 
     private boolean matchesVariable(ASTNode node) {
