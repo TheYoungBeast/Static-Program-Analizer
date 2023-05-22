@@ -107,10 +107,37 @@ public class ControlFlowGraph
 
         if(cfgNode.isPresent()) {
             var node = cfgNode.get();
-            return new Pair<>(node.getLeft(), node.getRight());
+
+            var left = shiftNode(node.getLeft());
+            var right = shiftNode(node.getRight());
+
+            return new Pair<>(left, right);
         }
 
         return new Pair<>(null, null);
+    }
+
+    private CfgNode shiftNode(CfgNode cfgNode)
+    {
+        Stack<CfgNode> cfgStack = new Stack<>();
+        cfgStack.add(cfgNode);
+
+        while (!cfgStack.isEmpty()) {
+            var node = cfgStack.pop();
+
+            if(node == null)
+                continue;
+
+            if(node instanceof EndIfNode || node.getAstNode() == null) {
+                cfgStack.add(node.getLeft());
+                cfgStack.add(node.getRight());
+                continue;
+            }
+
+            return node;
+        }
+
+        return cfgNode;
     }
 
     private Optional<CfgNode> seekNode(ASTNode astNode) {
