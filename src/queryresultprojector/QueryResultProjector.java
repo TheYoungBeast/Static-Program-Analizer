@@ -47,12 +47,13 @@ public class QueryResultProjector
 
         for (var synonym: synonyms) {
             for (var pr: partialResults) {
-                if(pr.containsKey(synonym))
+                if(pr.containsKey(synonym)) {
                     map.putIfAbsent(synonym, pr);
 
-                var pair = pr.getKeyPair();
-                if(pair != null) {
-                    relationshipsForKey.putIfAbsent(pair, (Set<Pair<ASTNode, ASTNode>>) pr.getValue());
+                    var pair = pr.getKeyPair();
+                    if (pair != null) {
+                        relationshipsForKey.putIfAbsent(pair, (Set<Pair<ASTNode, ASTNode>>) pr.getValue());
+                    }
                 }
             }
         }
