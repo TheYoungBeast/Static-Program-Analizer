@@ -10,6 +10,7 @@ import queryprocessor.preprocessor.synonyms.NamedVariableSynonym;
 import queryprocessor.preprocessor.synonyms.Synonym;
 import queryprocessor.preprocessor.synonyms.SynonymFactory;
 import queryprocessor.querytree.ExpressionPattern;
+import queryprocessor.querytree.ExpressionPatternIf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +59,14 @@ public class PatternExtractor extends Extractor {
                 if (patternSynonym == null)
                     throw new InvalidQueryException(String.format("Unrecognized synonym %s", synStr), group);
 
+                boolean ifPattern = false;
+                if(patternSynonym.getKeyword() == Keyword.IF)
+                {
+                    ifPattern = true;
+                    if(split.length != 3)
+                        throw new InvalidQueryException("Invalid number of arguments. Expected 3", group);
+                }
+
                 Synonym<?> leftHandExp = null;
                 if (leftHandExpStr.equals("_"))
                     leftHandExp = SynonymFactory.create(leftHandExpStr, Keyword.VARIABLE);
@@ -75,20 +84,31 @@ public class PatternExtractor extends Extractor {
                 if(leftHandExp == null)
                     throw new InvalidQueryException("Unrecognized pattern argument", group);
 
-                ASTNode expTree = null;
-                try {
-                    var exp = rightHandExprStr.replaceAll("[\"_]", "").trim();
-                    if(!exp.isBlank())
-                        expTree = Parser.parsePattern(exp);
-                }
-                catch (Exception e) {
-                    throw new InvalidQueryException(String.format("Invalid pattern expression: %s", e.getMessage()));
+
+
+                var expressions = new ArrayList<String>();
+                expressions.add(rightHandExprStr);
+
+                if(ifPattern)
+                {
+                    var elseExpStr = split[2].replaceAll(" ", "");
+                    expressions.add(elseExpStr);
                 }
 
-                boolean lookBehind = rightHandExprStr.contains("_\"");
-                boolean lookAhead = rightHandExprStr.contains("\"_");
+                var expressionPatterns = new ArrayList<ExpressionPattern>();
+                for(var sub: expressions) {
+                    ASTNode expTree = parseExpression(sub);
+                    boolean lookBehind = sub.contains("_\"");
+                    boolean lookAhead = sub.contains("\"_");
 
-                patterns.add(new ExpressionPattern(patternSynonym, leftHandExp, expTree, lookAhead, lookBehind));
+                    expressionPatterns.add(new ExpressionPattern(patternSynonym, leftHandExp, expTree, lookAhead, lookBehind));
+                }
+
+                if(ifPattern) {
+                    assert (expressionPatterns.size() == 2);
+                    patterns.add(new ExpressionPatternIf(expressionPatterns.get(0), expressionPatterns.get(1)));
+                }
+                else patterns.add(expressionPatterns.get(0));
             }
 
             if((results.size()-1) != getConcatenatorCount(query, region.getFirst(), region.getSecond()))
@@ -96,5 +116,20 @@ public class PatternExtractor extends Extractor {
         }
 
         return patterns;
+    }
+
+    private ASTNode parseExpression(String rightHandExpr) throws InvalidQueryException
+    {
+        ASTNode expTree = null;
+        try {
+            var exp = rightHandExpr.replaceAll("[\"_]", "").trim();
+            if(!exp.isBlank())
+                expTree = Parser.parsePattern(exp);
+        }
+        catch (Exception e) {
+            throw new InvalidQueryException(String.format("Invalid pattern expression: %s", e.getMessage()));
+        }
+
+        return expTree;
     }
 }
