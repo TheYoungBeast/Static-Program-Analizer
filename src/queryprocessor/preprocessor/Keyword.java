@@ -3,7 +3,7 @@ package queryprocessor.preprocessor;
 @SuppressWarnings("unused")
 public enum Keyword {
   SELECT("Select","select"),
-  SUCH_THAT("Such That","such that"),
+  SUCH_THAT("Such That","such\\s+that"),
   WITH("With","with"),
   WITH_CLAUSE("With-cl", "((with)|(and))\\s+[a-zA-Z0-9]+\\.[a-zA-Z#]+\\s*=\\s*(([0-9]+)|(\\s*\\\"(.*?)\\\")|([a-zA-Z0-9]+\\.[a-zA-Z#]+))"),
   PATTERN("Pattern","pattern"),
