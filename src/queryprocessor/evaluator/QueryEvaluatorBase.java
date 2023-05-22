@@ -257,22 +257,21 @@ public class QueryEvaluatorBase implements QueryEvaluator
                 var statements = resultLUT.computeIfAbsent(pattern.getSynonym(), l -> getMatchingNodes(pkb.getAST(), pattern.getSynonym()));
                 var variables = resultLUT.computeIfAbsent(pattern.getLeftHandExpression().getSynonym(), l -> getMatchingNodes(pkb.getAST(), pattern.getLeftHandExpression().getSynonym()));
 
+                var patternResults = new ArrayList<Pair<ASTNode, ASTNode>>();
                 for (var stmt: statements) {
-                    if(pattern.matchesPattern(stmt, variables))
+                    if(pattern.matchesPattern(stmt, variables)) {
                         patternRelationships.computeIfAbsent(
                                 new Pair<>(pattern.getSynonym(), pattern.getLeftHandExpression().getSynonym()),
                                 l -> new LinkedHashSet<>()
                         ).add(new Pair<>(stmt, stmt.getFirstChild()));
 
-                    else {
-                        statements.remove(stmt);
-                        variables.remove(stmt.getFirstChild());
+                        patternResults.add(new Pair<>(stmt, stmt.getFirstChild()));
                     }
                 }
 
                 // Update LUT
-                resultLUT.put(pattern.getSynonym(), statements);
-                resultLUT.put(pattern.getLeftHandExpression().getSynonym(), variables);
+                resultLUT.put(pattern.getSynonym(), patternResults.stream().map(Pair::getFirst).collect(Collectors.toSet()));
+                resultLUT.put(pattern.getLeftHandExpression().getSynonym(), patternResults.stream().map(Pair::getSecond).collect(Collectors.toSet()));
             }
 
             // Validate all patterns (implicit and)
