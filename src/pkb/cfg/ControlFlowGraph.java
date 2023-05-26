@@ -184,30 +184,29 @@ public class ControlFlowGraph
                 lastCfgNode.setLeft(whileNode);
                 whileNode.setRight(new CfgNode());
                 whileNode.getRight().setAstNode(aNode.getRightSibling());
-                aNode = aNode.getRightSibling();
                 lastCfgNode = whileNode.getRight();
             }
             else if(aNode instanceof IfNode) {
-                var then = aNode.getFirstChild().getRightSibling(); //   if
-                var elsee = then.getRightSibling();             //    /  |  \
-                                                                //  var  then  else
+                var thenBlock = aNode.getFirstChild().getRightSibling();    //    if
+                var elseBlock = thenBlock.getRightSibling();            //    /   |   \
+                                                                        //  var  then  else
                 var ifNode = new CfgNode();
                 ifNode.setAstNode(aNode);
                 lastCfgNode.setLeft(ifNode);
 
-                var thenNode = new CfgNode();
-                thenNode.setAstNode(then.getFirstChild());
-                ifNode.setLeft(thenNode);
-                var lastThenStmt = generateCfg(then.getFirstChild(), thenNode);
-
                 var endIfNode = new EndIfNode();
-                lastThenStmt.setRight(endIfNode);
 
-                if(elsee != null) {
-                    var elseNode = new CfgNode();
-                    elseNode.setAstNode(elsee.getFirstChild());
-                    ifNode.setRight(elseNode);
-                    var lastElseStmt = generateCfg(elsee.getFirstChild(), elseNode);
+                {
+                    var anchor = new CfgNode();
+                    var lastThenStmt = generateCfg(thenBlock.getFirstChild(), anchor);
+                    ifNode.setLeft(anchor.getLeft());
+                    lastThenStmt.setRight(endIfNode);
+                }
+
+                if(elseBlock != null) {
+                    var anchor = new CfgNode();
+                    var lastElseStmt = generateCfg(elseBlock.getFirstChild(), anchor);
+                    ifNode.setRight(anchor.getLeft());
                     lastElseStmt.setLeft(endIfNode);
                 }
 
@@ -220,8 +219,7 @@ public class ControlFlowGraph
                 lastCfgNode = cfg;
             }
 
-            if(aNode != null)
-                aNode = aNode.getRightSibling();
+            aNode = aNode.getRightSibling();
         }
 
         return lastCfgNode;
