@@ -41,6 +41,12 @@ public class ArgumentTypeDeducer
                 if(isUnconstrained(arg))
                     return SynonymFactory.create(arg, Keyword.STATEMENT);
                 break;
+
+            case AFFECTS:
+            case T_AFFECTS:
+                if(isUnconstrained(arg))
+                    return SynonymFactory.create(arg, Keyword.ASSIGN);
+                break;
         }
 
         throw new InvalidQueryException(String.format("Cannot deduce type for argument %s in %s", arg, relType.getName()));
