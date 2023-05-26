@@ -128,7 +128,7 @@ public class ControlFlowGraph
             if(node == null)
                 continue;
 
-            if(node instanceof EndIfNode || node.getAstNode() == null) {
+            if(node instanceof EscapeBlock || node.getAstNode() == null) {
                 cfgStack.add(node.getLeft());
                 cfgStack.add(node.getRight());
                 continue;
@@ -172,21 +172,28 @@ public class ControlFlowGraph
 
         while(aNode != null)
         {
-            if (aNode instanceof WhileNode) {
-                var whileNode = new CfgNode();
-                lastCfgNode.setLeft(whileNode);
-                whileNode.setAstNode(aNode);
-                var stmtList = aNode.getFirstChild().getRightSibling(); // WhileNode
-                                                                        //      |
-                                                                        //   condition ——> stmtList
-                whileNode.setLeft(new CfgNode());
-                lastCfgNode = generateCfg(stmtList.getFirstChild(), whileNode);
-                lastCfgNode.setLeft(whileNode);
-                whileNode.setRight(new CfgNode());
-                whileNode.getRight().setAstNode(aNode.getRightSibling());
-                lastCfgNode = whileNode.getRight();
+            if (aNode instanceof WhileNode)
+            {
+                var whileCfgNode = new CfgNode();
+                lastCfgNode.setLeft(whileCfgNode);
+
+                whileCfgNode.setAstNode(aNode);
+
+                var anchor = new CfgNode();
+                var stmtList = aNode.getFirstChild().getRightSibling().getFirstChild();
+
+                var lastStmt = generateCfg(stmtList, anchor);
+
+                whileCfgNode.setLeft(anchor.getLeft());
+                lastStmt.setLeft(whileCfgNode);
+
+                var nextCfg = new EscapeBlock();
+                whileCfgNode.setRight(nextCfg);
+
+                lastCfgNode = nextCfg;
             }
-            else if(aNode instanceof IfNode) {
+            else if(aNode instanceof IfNode)
+            {
                 var thenBlock = aNode.getFirstChild().getRightSibling();    //    if
                 var elseBlock = thenBlock.getRightSibling();            //    /   |   \
                                                                         //  var  then  else
@@ -194,7 +201,7 @@ public class ControlFlowGraph
                 ifNode.setAstNode(aNode);
                 lastCfgNode.setLeft(ifNode);
 
-                var endIfNode = new EndIfNode();
+                var endIfNode = new EscapeBlock();
 
                 {
                     var anchor = new CfgNode();
@@ -212,9 +219,11 @@ public class ControlFlowGraph
 
                 lastCfgNode = endIfNode;
             }
-            else if(aNode instanceof StatementNode) {
+            else if(aNode instanceof StatementNode)
+            {
                 var cfg = new CfgNode();
                 lastCfgNode.setLeft(cfg);
+
                 cfg.setAstNode(aNode);
                 lastCfgNode = cfg;
             }
