@@ -1,9 +1,8 @@
 package queryprocessor.querytree;
 
-import pkb.ast.AssignmentNode;
-import pkb.ast.IfNode;
-import pkb.ast.WhileNode;
+import pkb.ast.*;
 import pkb.ast.abstraction.ASTNode;
+import pkb.ast.abstraction.MathExpression;
 import queryprocessor.preprocessor.synonyms.Synonym;
 
 import java.util.Optional;
@@ -71,38 +70,34 @@ public class ExpressionPattern extends QTNode
         return false;
     }
 
-    protected boolean compare(ASTNode child)
+    protected boolean compare(ASTNode variableNode)
     {
         if(subExpressionTree.isEmpty())
             return true;
 
+        var searchExpressionTree = subExpressionTree.get();
+
         var steps = 0;
-        var expressionNode = child.getRightSibling();
-        while(expressionNode != null)
+        var stmtExpressionTree = variableNode.getRightSibling();
+        while(stmtExpressionTree != null)
         {
             if(!lookBehind && steps > 1)
                 return false;
 
             var depth = new Depth();
-            if(compareTrees(subExpressionTree.get(), expressionNode, depth, lookAhead)) {
+
+            if(compareTrees(searchExpressionTree, stmtExpressionTree, depth, lookAhead)) {
                 if(lookAhead)
                     return true;
-
-                var lastNode = expressionNode;
-                var i = depth.level;
-                while(i > 0) {
-                    i--;
-                    //lastNode = lastNode.getRightSibling();
-                }
 
                 // the special case when comparing fragment tree to bigger tree e.g. x*y+z+v with x*y+z
                 // Matches only if lookAhead is allowed.
                 // pattern a("x", "x*y+z"_)
-                if(lastNode.getRightSibling() == null)
+                if(stmtExpressionTree.getRightSibling() == null)
                     return true;
             }
 
-            expressionNode = expressionNode.getRightSibling();
+            stmtExpressionTree = stmtExpressionTree.getRightSibling();
             steps++;
         }
 
@@ -113,20 +108,30 @@ public class ExpressionPattern extends QTNode
         public Integer level = 0;
     }
 
-    private boolean compareTrees(ASTNode a, ASTNode b, Depth depth, final boolean lookAhead)
+    private boolean compareTrees(ASTNode searchExp, ASTNode stmtExp, Depth depth, final boolean lookAhead)
     {
         /*1. both empty */
-        if (a == null && b == null)
+        if (searchExp == null && stmtExp == null)
             return true;
-        else if (lookAhead && a == null)
+        else if (lookAhead && searchExp == null)
             return true;
 
         /* 2. both non-empty -> compare them */
-        if (a != null && b != null) {
+        if (searchExp != null && stmtExp != null) {
             depth.level++;
-            return (a.equals(b)
-                    && compareTrees(a.getFirstChild(), b.getFirstChild(), depth, lookAhead)
-                    && compareTrees(a.getRightSibling(), b.getRightSibling(), depth, lookAhead));
+
+            var isSearchExpMathExpression = searchExp instanceof MathExpression;
+            var isStmtExpMathExpression = stmtExp instanceof MathExpression;
+
+            if(isSearchExpMathExpression && isStmtExpMathExpression)
+                return (searchExp.getClass().equals(stmtExp.getClass())
+                        && compareTrees(searchExp.getFirstChild(), stmtExp.getFirstChild(), depth, lookAhead)
+                        && compareTrees(searchExp.getRightSibling(), stmtExp.getRightSibling(), depth, lookAhead));
+            else if (isStmtExpMathExpression && depth.level == 1)
+                return compareTrees(searchExp, stmtExp.getFirstChild(), depth, lookAhead);
+            else return (searchExp.equals(stmtExp)
+                        && compareTrees(searchExp.getFirstChild(), stmtExp.getFirstChild(), depth, lookAhead)
+                        && compareTrees(searchExp.getRightSibling(), stmtExp.getRightSibling(), depth, lookAhead));
         }
 
         /* 3. one empty, one not -> false */
