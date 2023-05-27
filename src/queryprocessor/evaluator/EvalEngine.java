@@ -405,6 +405,7 @@ public class EvalEngine implements EvaluationEngine
 
                 if(!evaluateAffectsHelper(Set.of(a1), Set.of(a2), flowPath).isEmpty()) {
                     resultPairs.add(new Pair<>(a1, a2));
+                    break;
                 }
 
                 for (int i = 0; i < flowPath.size(); i++)
@@ -469,10 +470,6 @@ public class EvalEngine implements EvaluationEngine
 
                 if (flowPaths.isEmpty())
                     continue;
-
-                if(!evaluateAffectRel(Set.of(a1), Set.of(a2)).isEmpty()) {
-                    resultPairs.add(new Pair<>(a1, a2));
-                }
 
                 for (var flowPath : flowPaths) {
                     flowPath = flowPath.stream().filter(cfgNode ->
