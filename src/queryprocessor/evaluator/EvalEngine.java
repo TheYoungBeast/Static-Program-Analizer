@@ -412,7 +412,7 @@ public class EvalEngine implements EvaluationEngine
                         continue;
 
                     var helperFlowPath = flowPath.subList(0, i);
-                    var transFlowPath = flowPath.subList(i, flowPath.size()-1);
+                    var transFlowPath = flowPath.subList(i, flowPath.size());
 
                     var affectsResult = evaluateAffectsHelper(
                             Set.of(a1),
