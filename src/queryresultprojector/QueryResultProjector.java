@@ -1,8 +1,6 @@
 package queryresultprojector;
 
-import pkb.ast.VariableNode;
 import pkb.ast.abstraction.ASTNode;
-import pkb.ast.abstraction.StatementNode;
 import queryprocessor.evaluator.EvaluationResult;
 import queryprocessor.evaluator.PartialResult;
 import queryprocessor.preprocessor.Keyword;
@@ -68,16 +66,15 @@ public class QueryResultProjector
             return builder.toString();
         }
 
-        List<List<ASTNode>> results = new ArrayList<>();
-
         List<List<ASTNode>> source = new ArrayList<>();
         for (var entry: map.entrySet()) {
             var values = new ArrayList<>(entry.getValue().getValue(entry.getKey()));
             source.add(values);
         }
 
-        results = recursiveSetCombination(results, source, 0);
-        results = new ArrayList<>(new HashSet<>(results));
+        Set<List<ASTNode>> destination = new HashSet<>();
+        destination = recursiveSetCombination(destination, source, 0);
+        var results = new ArrayList<>(destination);
 
         var resultValidity = new boolean[results.size()];
 
@@ -98,9 +95,6 @@ public class QueryResultProjector
                     resultValidity[i] = true;
                     continue;
                 }
-
-                //synonymsChecked[synonymPos] = true;
-                //synonymsChecked[secondSynonymPos] = true;
 
                 var node1 = result.get(synonymPos);
                 var node2 = result.get(secondSynonymPos);
@@ -147,7 +141,7 @@ public class QueryResultProjector
         return builder.toString();
     }
 
-    List<List<ASTNode>> recursiveSetCombination(List<List<ASTNode>> dest, List<List<ASTNode>> source, int step) {
+    private Set<List<ASTNode>> recursiveSetCombination(Set<List<ASTNode>> dest, List<List<ASTNode>> source, int step) {
         if(step == source.size())
             return dest;
 
@@ -158,7 +152,7 @@ public class QueryResultProjector
             return recursiveSetCombination(dest, source, step+1);
         }
         else {
-            var newResult = new ArrayList<List<ASTNode>>();
+            var newResult = new HashSet<List<ASTNode>>();
 
             for (var res: dest) {
                 for (var s: source.get(step)) {
