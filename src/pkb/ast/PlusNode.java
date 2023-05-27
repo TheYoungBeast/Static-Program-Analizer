@@ -1,8 +1,9 @@
 package pkb.ast;
 
 import pkb.ast.abstraction.ExpressionNode;
+import pkb.ast.abstraction.MathExpression;
 
-public class PlusNode extends ExpressionNode {
+public class PlusNode extends MathExpression {
 
   private ExpressionNode left;
 

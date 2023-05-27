@@ -1,8 +1,11 @@
 package pkb.ast;
 
 import pkb.ast.abstraction.ExpressionNode;
+import pkb.ast.abstraction.MathExpression;
 
-public class TimesNode extends ExpressionNode {
+import java.util.Objects;
+
+public class TimesNode extends MathExpression {
 
   private ExpressionNode left;
 
@@ -32,5 +35,18 @@ public class TimesNode extends ExpressionNode {
 
   public void setRight(ExpressionNode right) {
     this.right = right;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof TimesNode)) return false;
+    TimesNode timesNode = (TimesNode) o;
+    return Objects.equals(left, timesNode.left) && Objects.equals(right, timesNode.right);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(left, right);
   }
 }
