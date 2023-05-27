@@ -127,8 +127,9 @@ public class ExpressionPattern extends QTNode
                 return (searchExp.getClass().equals(stmtExp.getClass())
                         && compareTrees(searchExp.getFirstChild(), stmtExp.getFirstChild(), depth, lookAhead)
                         && compareTrees(searchExp.getRightSibling(), stmtExp.getRightSibling(), depth, lookAhead));
-            else if (isStmtExpMathExpression && depth.level == 1)
-                return compareTrees(searchExp, stmtExp.getFirstChild(), depth, lookAhead);
+            else if (isStmtExpMathExpression)
+                return compareTrees(searchExp, stmtExp.getFirstChild(), depth, lookAhead)
+                        || compareTrees(searchExp, stmtExp.getFirstChild().getRightSibling(), depth, lookAhead);
             else return (searchExp.equals(stmtExp)
                         && compareTrees(searchExp.getFirstChild(), stmtExp.getFirstChild(), depth, lookAhead)
                         && compareTrees(searchExp.getRightSibling(), stmtExp.getRightSibling(), depth, lookAhead));
