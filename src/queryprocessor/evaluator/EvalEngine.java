@@ -316,8 +316,10 @@ public class EvalEngine implements EvaluationEngine
                             Set.of(a2),
                             flowPath.stream().map(CfgNode::getAstNode).filter(Objects::nonNull).collect(Collectors.toList()));
 
-                    if(!result.isEmpty())
+                    if(!result.isEmpty()) {
                         resultsPairs.add(new Pair<>(a1, a2));
+                        break;
+                    }
                 }
             }
         }
@@ -429,6 +431,7 @@ public class EvalEngine implements EvaluationEngine
                         continue;
 
                     resultPairs.add(new Pair<>(a1, a2));
+                    break;
                 }
             }
         }
@@ -483,8 +486,10 @@ public class EvalEngine implements EvaluationEngine
                             Set.of(a2),
                             flowPath.stream().map(CfgNode::getAstNode).filter(Objects::nonNull).collect(Collectors.toList()));
 
-                    if(!results.isEmpty())
+                    if(!results.isEmpty()) {
                         resultPairs.add(new Pair<>(a1, a2));
+                        break;
+                    }
                 }
             }
         }
