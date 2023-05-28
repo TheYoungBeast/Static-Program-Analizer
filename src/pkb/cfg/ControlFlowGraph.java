@@ -56,12 +56,14 @@ public class ControlFlowGraph
         var flowPaths = new ArrayList<List<CfgNode>>();
         var visited = new HashSet<CfgNode>();
 
+        var isCycle = nodeFrom.get().getAstNode().getStatementId() == nodeTo.get().getAstNode().getStatementId();
+
         DFS(nodeFrom.get(),
                 nodeTo.get(),
                 visited,
                 currentPath,
                 flowPaths,
-                nodeFrom.get().getAstNode().getStatementId() == nodeTo.get().getAstNode().getStatementId(),
+                isCycle,
                 0);
 
         return flowPaths;
@@ -76,11 +78,9 @@ public class ControlFlowGraph
 
         if(u.equals(v))
         {
-            if(cycle) {
-                count += 1;
-                if(count < 2)
-                    visited.remove(u);
-            }
+            visited.remove(u);
+
+            if(cycle) count += 1;
 
             if(count == 2 || !cycle) {
                 flowPaths.add((List<CfgNode>) currentPath.clone());
@@ -187,10 +187,10 @@ public class ControlFlowGraph
                 whileCfgNode.setLeft(anchor.getLeft());
                 lastStmt.setLeft(whileCfgNode);
 
-                var nextCfg = new EscapeBlock();
-                whileCfgNode.setRight(nextCfg);
+                var whileEscapeBlock = new EscapeBlock();
+                whileCfgNode.setRight(whileEscapeBlock);
 
-                lastCfgNode = nextCfg;
+                lastCfgNode = whileEscapeBlock;
             }
             else if(aNode instanceof IfNode)
             {
@@ -207,7 +207,7 @@ public class ControlFlowGraph
                     var anchor = new CfgNode();
                     var lastThenStmt = generateCfg(thenBlock.getFirstChild(), anchor);
                     ifNode.setLeft(anchor.getLeft());
-                    lastThenStmt.setRight(endIfNode);
+                    lastThenStmt.setLeft(endIfNode);
                 }
 
                 if(elseBlock != null) {
