@@ -29,7 +29,7 @@ public class ValidatorFactory
                 validator = new AggregatedValidator(createCallsValidatorChain(ref));
                 break;
             case USES:
-                validator = new AggregatedValidator(createUsesValidatiorChain(ref));
+                validator = new AggregatedValidator(createUsesValidatorChain(ref));
                 break;
             case MODIFIES:
                 validator = new AggregatedValidator(createModifiesValidatorChain(ref));
@@ -79,6 +79,7 @@ public class ValidatorFactory
 
         for (int i = 0; i < ref.getArgSize(); i++ )
             chain.add(new IsAnyValidator(List.of(
+                    new ArgTypeValidator(ref.getArg(i), Keyword.PROG_LINE),
                     new ArgTypeValidator(ref.getArg(i), Keyword.STATEMENT),
                     new ArgTypeValidator(ref.getArg(i), Keyword.CALL),
                     new ArgTypeValidator(ref.getArg(i), Keyword.ASSIGN),
@@ -106,7 +107,7 @@ public class ValidatorFactory
         final var args = 2;
         chain.add(new ArgumentNumberValidator(ref, args)); // przenies informacje o ilosc arg itp do Statycznej tabeli
 
-        chain.add(new IsContainerStatement(ref.getArg(0)));
+        //chain.add(new IsContainerStatement(ref.getArg(0)));
 
         var arg = ref.getArg(1);
         chain.add(
@@ -130,7 +131,7 @@ public class ValidatorFactory
          return chain;
      }
 
-     private static List<Validator> createUsesValidatiorChain(RelationshipRef ref) {
+     private static List<Validator> createUsesValidatorChain(RelationshipRef ref) {
         var chain = new ArrayList<Validator>();
 
          final var args = 2;
