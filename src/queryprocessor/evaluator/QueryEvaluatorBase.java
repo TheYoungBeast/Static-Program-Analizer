@@ -269,6 +269,10 @@ public class QueryEvaluatorBase implements QueryEvaluator
                     }
                 }
 
+                if(patternResults.isEmpty()) {
+                    resultLUT.clear();
+                }
+
                 // Update LUT
                 resultLUT.put(pattern.getSynonym(), patternResults.stream().map(Pair::getFirst).collect(Collectors.toSet()));
                 resultLUT.put(pattern.getLeftHandExpression().getSynonym(), patternResults.stream().map(Pair::getSecond).collect(Collectors.toSet()));
