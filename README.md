@@ -82,3 +82,10 @@ Exceptions: 19 (minor oversights, mainly being too restrict in the validation pr
 # Example of PQL Queries and Tests
 ![obraz](https://github.com/TheYoungBeast/Static-Program-Analizer/assets/19922252/591deacc-0899-4ee0-b89d-1b6bc24a2304)
 
+# How to run the program
+
+```
+java -jar filename.jar "path-to-the-simple-program.txt"
+```
+- Run project in IDE
+- There is an example of the program written in SIMPLE, you can use it to run the program and analyze it
