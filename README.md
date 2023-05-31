@@ -75,9 +75,9 @@ displays query results for the programmer to view.
 - Pattern - matches wrong statements due to not including all cases when comparing expression trees
 
 # Results
-Test passed: 370
-Test failed: 70 (majority of test gave correct answers but they missed some results, only pattern relationship generated invalid results in some cases)
-Exceptions: 19 (minor oversights, mainly being too restrict in the validation process)
+- Test passed: 370
+- Test failed: 70 (majority of test gave correct answers but they missed some results, only pattern relationship generated invalid results in some cases)
+- Exceptions: 19 (minor oversights, mainly being too restrict in the validation process)
 
 # Example of PQL Queries and Tests
 ![obraz](https://github.com/TheYoungBeast/Static-Program-Analizer/assets/19922252/591deacc-0899-4ee0-b89d-1b6bc24a2304)
