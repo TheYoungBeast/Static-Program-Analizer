@@ -1,5 +1,26 @@
 # Static-Program-Analizer
-ATS
+You can find all project requirements in the [Handbook](https://github.com/TheYoungBeast/Static-Program-Analizer/blob/master/INF2ATS%20Handbook.pdf).
+## Note
+The author of the Handbook and Course is prof. dr. Stanisław Jarząbek which created this course for Bialystok's Univeristy of Technology.
+The are 2 authors of the this project.
+Project contains over 155 commits, where almost over 100 belongs to me.
+I was resposible for following modules:
+- CFG
+- PKB (improvements & modifications)
+- QueryTree
+- EvaluationEngine
+- QueryPreprocessor
+- QueryEvaluator
+- QueryProjector
+- Improving the efficiency of evaluation algorithms
+
+Rest of the modules such that:
+- AST
+- PKB
+- Parser
+- Lexer
+
+were done by [@Crysisek](https://github.com/Crysisek)
 
 # 4.2 What Is an SPA and How Is It Used?
 A Static Program Analyzer (SPA for short) is an interactive tool that automatically answers queries 
@@ -33,6 +54,8 @@ English would be simple for programmers, it would be very difficult for SPAs. Th
 compromise, we define a semi-formal Program Query Language (PQL for short) for a programmer to 
 formulate program queries. A Query Processor validates and evaluates queries. Query Result Projector
 displays query results for the programmer to view.
+
+# Diagrams
 
 ![obraz](https://github.com/TheYoungBeast/Static-Program-Analizer/assets/19922252/b4bf74d3-4730-4605-b7d4-8954f9481f63)
 
