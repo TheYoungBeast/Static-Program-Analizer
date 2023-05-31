@@ -1,10 +1,13 @@
 # Static-Program-Analizer
-You can find all project requirements in the [Handbook](https://github.com/TheYoungBeast/Static-Program-Analizer/blob/master/INF2ATS%20Handbook.pdf).
+All project requirements are in the [Handbook](https://github.com/TheYoungBeast/Static-Program-Analizer/blob/master/INF2ATS%20Handbook.pdf).
+Please ask the author of the Handbook for permission if you plan to use it in another way besides reading.
+The intention of posting this document is to help recruiters and technical staff to show the project's advancement level.
+
 ## Note
-The author of the Handbook and Course is prof. dr. Stanisław Jarząbek which created this course for Bialystok's Univeristy of Technology.
-The are 2 authors of the this project.
-Project contains over 155 commits, where almost over 100 belongs to me.
-I was resposible for following modules:
+The author of the Handbook and Course is Prof. Dr. Stanisław Jarząbek. He created this course for Bialystok's University of Technology. 
+The are 2 authors of this project. 
+The project contains over 155 commits, where almost over 100 belong to me. 
+I was responsible for following modules:
 - CFG
 - PKB (improvements & modifications)
 - QueryTree
@@ -66,3 +69,16 @@ displays query results for the programmer to view.
 ![obraz](https://github.com/TheYoungBeast/Static-Program-Analizer/assets/19922252/a020421e-d3dc-4345-baca-7afedc0d0479)
 
 ![obraz](https://github.com/TheYoungBeast/Static-Program-Analizer/assets/19922252/6ca23f4f-da27-4cf3-80c2-7d3f90035e04)
+
+# Known bugs
+- Affects* - missing at least 34% due to CFG being incomplete. The fix to this issue is to implement better algorithm e.g. like this one proposed in the paper [An Efficient Method for Automatic Generation of Linearly Independent Paths in White-box Testing](https://www.researchgate.net/publication/282763633_An_Efficient_Method_for_Automatic_Generation_of_Linearly_Independent_Paths_in_White-box_Testing)
+- Pattern - matches wrong statements due to not including all cases when comparing expression trees
+
+# Results
+Test passed: 370
+Test failed: 70 (majority of test gave correct answers but they missed some results, only pattern relationship generated invalid results in some cases)
+Exceptions: 19 (minor oversights, mainly being too restrict in the validation process)
+
+# Example of PQL Queries and Tests
+![obraz](https://github.com/TheYoungBeast/Static-Program-Analizer/assets/19922252/591deacc-0899-4ee0-b89d-1b6bc24a2304)
+
